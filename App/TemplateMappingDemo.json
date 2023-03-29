@@ -1,0 +1,16 @@
+{
+  "docuSignTemplateId": "Electronic Signature",
+  "bestSignTemplateId": "3252850795062190082",
+  "parameterMappings": [
+    {
+      "DocuSignDataType": 1,
+      "DocuSignDataName": "Username",
+      "BestSignDataName": "Username"
+    },
+    {
+      "DocuSignDataType": 1,
+      "DocuSignDataName": "Password",
+      "BestSignDataName": "Password"
+    }
+  ]
+}
