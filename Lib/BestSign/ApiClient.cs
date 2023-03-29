@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
+using Lib.BestSign.Common;
+using Lib.BestSign.Dtos;
 
 namespace Lib.BestSign;
 

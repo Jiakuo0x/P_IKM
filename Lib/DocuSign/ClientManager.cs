@@ -1,3 +1,5 @@
+using DocuSign.eSign.Client;
+
 namespace Lib.DocuSign;
 
 public class ClientManager

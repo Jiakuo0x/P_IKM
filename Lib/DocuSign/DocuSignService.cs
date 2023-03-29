@@ -1,10 +1,5 @@
-﻿using DocuSign.eSign.Model;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DocuSign.eSign.Api;
+using DocuSign.eSign.Model;
 
 namespace Lib.DocuSign;
 

@@ -1,4 +1,4 @@
-namespace Lib.BestSign;
+namespace Lib.BestSign.Dtos;
 
 public class Token 
 {

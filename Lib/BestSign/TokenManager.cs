@@ -1,3 +1,5 @@
+using Lib.BestSign.Dtos;
+
 namespace Lib.BestSign;
 
 public class TokenManager
@@ -8,15 +10,6 @@ public class TokenManager
         _options = options;
     }
     public async Task<Token> GetToken()
-    {
-        if (Data.BestSignToken is null || Data.BestSignToken.ExpirationTime < DateTimeOffset.Now)
-        {
-            Data.BestSignToken = await GetTokenFromBestSign();
-        }
-
-        return Data.BestSignToken;
-    }
-    public async Task<Token> GetTokenFromBestSign()
     {
         var client = new HttpClient();
 

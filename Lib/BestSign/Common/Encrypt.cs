@@ -1,8 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
-using System.Web;
 
-namespace Lib.BestSign;
+namespace Lib.BestSign.Common;
 
 public static class Encrypt
 {
