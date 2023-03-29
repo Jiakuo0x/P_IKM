@@ -15,8 +15,8 @@ builder.Services.AddSingleton<Lib.DocuSign.DocuSignService>();
 
 builder.Services.AddOptions<Lib.BestSign.Configuration>()
     .Bind(builder.Configuration.GetSection("BestSign"));
-builder.Services.AddScoped<Lib.BestSign.TokenManager>();
-builder.Services.AddScoped<Lib.BestSign.ApiClient>();
+builder.Services.AddSingleton<Lib.BestSign.TokenManager>();
+builder.Services.AddSingleton<Lib.BestSign.ApiClient>();
 
 // builder.Services.AddHostedService<DocuSignReader>();
 builder.Services.AddHostedService<ContactCreator>();

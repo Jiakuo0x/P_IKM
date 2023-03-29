@@ -15,6 +15,18 @@ public class DocuSignService
         _clientManager = clientManager;
     }
 
+    public async Task<EnvelopesInformation> MatchEnvelopes()
+    {
+        var client = _clientManager.GetClient();
+        EnvelopesApi envelopesApi = new(client);
+        var envelopes = await envelopesApi.ListStatusChangesAsync(_options.Value.AccountId, new EnvelopesApi.ListStatusChangesOptions
+        {
+            fromDate = DateTime.Now.Date.AddDays(-30).ToShortDateString(),
+            include = "custom_fields,documents,recipients",
+        });
+        return envelopes;
+    }
+
     public async Task<Envelope> GetEnvelopeAsync(string envelopeId)
     {
         var client = _clientManager.GetClient();

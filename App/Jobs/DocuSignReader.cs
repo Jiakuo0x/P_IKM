@@ -1,18 +1,23 @@
 using Data.Models;
 using Data.Enums;
+using Lib.DocuSign;
+
 namespace Jobs;
 
 public class DocuSignReader : BackgroundService
 {
     private readonly ILogger<DocuSignReader> _logger;
+    private readonly DocuSignService _docuSignService;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IOptions<Lib.DocuSign.Configuration> _docuSignOptions;
     public DocuSignReader(
         ILogger<DocuSignReader> logger,
+        DocuSignService docuSignService,
         IServiceScopeFactory serviceScopeFactory,
         IOptions<Lib.DocuSign.Configuration> docuSignOptions)
     {
         _logger = logger;
+        _docuSignService = docuSignService;
         _serviceScopeFactory = serviceScopeFactory;
         _docuSignOptions = docuSignOptions;
     }
@@ -38,7 +43,7 @@ public class DocuSignReader : BackgroundService
 
     protected async Task DoWork()
     {
-        var envelopes = await MatchEnvelopes();
+        var envelopes = await _docuSignService.MatchEnvelopes();
         var dbContext = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<DbContext>();
         var envelopesDic = dbContext.Set<ElectronicSignatureTask>()
             .Select(i => new { i.DocuSignEnvelopeId, i.CurrentStep })
@@ -64,19 +69,6 @@ public class DocuSignReader : BackgroundService
                 StartCreateBestsignContract(envelope);
             }
         }
-    }
-
-    protected async Task<EnvelopesInformation> MatchEnvelopes()
-    {
-        var docusignClientManager = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<Lib.DocuSign.ClientManager>();
-        DocuSignClient client = docusignClientManager.GetClient();
-        EnvelopesApi envelopesApi = new(client);
-        var envelopes = await envelopesApi.ListStatusChangesAsync(_docuSignOptions.Value.AccountId, new EnvelopesApi.ListStatusChangesOptions
-        {
-            fromDate = DateTime.Now.Date.AddDays(-30).ToShortDateString(),
-            include = "custom_fields,documents,recipients",
-        });
-        return envelopes;
     }
 
     protected void StartCreateBestsignContract(Envelope envelope)
