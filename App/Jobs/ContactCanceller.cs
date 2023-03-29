@@ -1,6 +1,7 @@
 ﻿using DocuSign.eSign.Model;
 using Data.Models;
 using Data.Enums;
+using Lib.BestSign.Dtos;
 
 namespace App.Jobs
 {
@@ -46,7 +47,7 @@ namespace App.Jobs
 
             foreach (var task in tasks)
             {
-                var apiResponse = await bestSignApiClient.Post<Lib.BestSign.ApiResponse>($"/api/contracts/{task.BestSignContractId}/revoke", new
+                var apiResponse = await bestSignApiClient.Post<ApiResponse>($"/api/contracts/{task.BestSignContractId}/revoke", new
                 {
                     revokeReason = "The system has cancelled the contract because the relevant envelope of DocuSign has been cancelled",
                 });
