@@ -47,16 +47,55 @@ namespace App.Jobs
 
             foreach (var task in tasks)
             {
-                var apiResponse = await bestSignApiClient.Post<ApiResponse>($"/api/contracts/{task.BestSignContractId}/revoke", new
+                try
                 {
-                    revokeReason = "The system has cancelled the contract because the relevant envelope of DocuSign has been cancelled",
-                });
-                if (apiResponse.Code == "0")
+                    var apiResponse = await bestSignApiClient.Post<ApiResponse>($"/api/contracts/{task.BestSignContractId}/revoke", new
+                    {
+                        revokeReason = "The system has cancelled the contract because the relevant envelope of DocuSign has been cancelled",
+                    });
+                    if (apiResponse.Code == "0")
+                    {
+                        TaskStatusChange(dbContext, task, TaskStep.ContractCancelled);
+                    }
+                    else
+                    {
+                        LogError(dbContext, task, apiResponse.Message);
+                    }
+                }
+                catch (Exception ex)
                 {
-                    task.CurrentStep =TaskStep.ContractCancelled;
+                    LogError(dbContext, task, ex.Message);
                 }
             }
             dbContext.SaveChanges();
+        }
+
+        protected void LogError(DbContext db, ElectronicSignatureTask task, string error)
+        {
+            db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
+            {
+                TaskId = task.Id,
+                Step = task.CurrentStep,
+                Log = $"[Error] {error}",
+            });
+            task.Counter++;
+
+            if(task.Counter >= 5)
+            {
+                TaskStatusChange(db, task, TaskStep.ContractCancellingFailed);
+            }
+        }
+
+        protected void TaskStatusChange(DbContext db, ElectronicSignatureTask task, TaskStep to)
+        {
+            db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
+            {
+                TaskId = task.Id,
+                Step = task.CurrentStep,
+                Log = $"[Task Step Change] {task.CurrentStep} -> {to}",
+            });
+            task.CurrentStep = to;
+            task.Counter = 0;
         }
     }
 }

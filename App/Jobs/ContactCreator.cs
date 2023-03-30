@@ -49,42 +49,15 @@ namespace App.Jobs
                     MatchEnvelope(createContractModel);
                     MatchTemplateMapping(createContractModel);
                     var contract = await CreateContract(createContractModel);
-                    
-                    db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
-                    {
-                        TaskId = task.Id,
-                        Step = task.CurrentStep,
-                        Log = $"[Task Step Change] {task.CurrentStep} -> {TaskStep.ContractCreated}",
-                    });
+
                     task.BestSignContractId = contract.ContractId;
-                    task.CurrentStep = TaskStep.ContractCreated;
-                    task.Counter = 0;
-                    db.SaveChanges();
+                    TaskStatusChange(db, task, TaskStep.ContractCreated);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Create contract failed. Envelope ID: {task.DocuSignEnvelopeId}");
-                    db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
-                    {
-                        TaskId = task.Id,
-                        Step = task.CurrentStep,
-                        Log = ex.Message,
-                    });
-                    task.Counter++;
-
-                    if (task.Counter >= 5)
-                    {
-                        db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
-                        {
-                            TaskId = task.Id,
-                            Step = task.CurrentStep,
-                            Log = $"[Task Step Change] {task.CurrentStep} -> {TaskStep.ContractCreatingFailed}",
-                        });
-                        task.CurrentStep = TaskStep.ContractCreatingFailed;
-                        task.Counter = 0;
-                    }
-                    db.SaveChanges();
+                    LogError(db, task, ex.Message);
                 }
+                db.SaveChanges();
             }
         }
 
@@ -117,6 +90,34 @@ namespace App.Jobs
             });
 
             return apiResponse;
+        }
+
+        protected void LogError(DbContext db, ElectronicSignatureTask task, string message)
+        {
+            db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
+            {
+                TaskId = task.Id,
+                Step = task.CurrentStep,
+                Log = $"[Error] {message}"
+            });
+            task.Counter++;
+
+            if (task.Counter >= 5)
+            {
+                TaskStatusChange(db, task, TaskStep.ContractCreatingFailed);
+            }
+        }
+
+        protected void TaskStatusChange(DbContext db, ElectronicSignatureTask task, TaskStep to)
+        {
+            db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
+            {
+                TaskId = task.Id,
+                Step = task.CurrentStep,
+                Log = $"[Task Step Change] {task.CurrentStep} -> {to}",
+            });
+            task.CurrentStep = to;
+            task.Counter = 0;
         }
 
         public class CreateContractModel
