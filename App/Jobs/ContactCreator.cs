@@ -9,14 +9,17 @@ namespace App.Jobs
         private readonly ILogger<DocuSignReader> _logger;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IOptions<Lib.DocuSign.Configuration> _docuSignOptions;
+        private readonly DocuSignService _docuSignService;
         public ContactCreator(
             ILogger<DocuSignReader> logger,
             IServiceScopeFactory serviceScopeFactory,
-            IOptions<Lib.DocuSign.Configuration> docuSignOptions)
+            IOptions<Lib.DocuSign.Configuration> docuSignOptions,
+            DocuSignService docuSignService)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
             _docuSignOptions = docuSignOptions;
+            _docuSignService = docuSignService;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -82,16 +85,54 @@ namespace App.Jobs
 
         protected async Task<CreateContractSuccessModel> CreateContract(CreateContractModel createContractModel)
         {
+            List<Object> requestDocuments = new();
+            foreach (var document in createContractModel.Envelope.EnvelopeDocuments)
+            {
+                if (document.Name == "Summary") continue;
+                var docContent = await ConvertDocument(createContractModel, document);
+                requestDocuments.Add(new
+                {
+                    content = docContent,
+                    fileName = document.Name,
+                });
+            }
 
             var bestSignApiClient = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<Lib.BestSign.ApiClient>();
             var apiResponse = await bestSignApiClient.Post<CreateContractSuccessModel>($"/api/templates/send-contracts-sync-v2", new
             {
                 templateId = createContractModel.TemplateMapping!.BestSignTemplateId,
+                documents = requestDocuments,
             });
 
             return apiResponse;
         }
 
+        protected async Task<byte[]> ConvertDocument(CreateContractModel createContractModel, EnvelopeDocument document)
+        {
+            var file = await _docuSignService.DownloadDocument(createContractModel.Task.DocuSignEnvelopeId, document.DocumentId);
+            Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument();
+            pdf.LoadFromStream(file);
+            Spire.Pdf.Widget.PdfFormWidget widgets = (pdf.Form as Spire.Pdf.Widget.PdfFormWidget)
+                ?? throw new Exception("System Error: DocuSing document is not a PDF file.");
+
+            for (int i = 0; i < widgets!.FieldsWidget.List.Count; i++)
+            {
+                Spire.Pdf.Widget.PdfFieldWidget widget = (widgets.FieldsWidget[i] as Spire.Pdf.Widget.PdfFieldWidget)
+                    ?? throw new Exception("System Error: DocuSing document is not a PDF file.");
+
+                if (widget is Spire.Pdf.Widget.PdfSignatureFieldWidget)
+                {
+                    widgets.FieldsWidget.RemoveAt(i);
+                }
+            }
+            var stream = new MemoryStream();
+            pdf.SaveToStream(stream);
+
+            var result = stream.ToArray();
+            stream.Dispose();
+
+            return result;
+        }
         protected void LogError(DbContext db, ElectronicSignatureTask task, string message)
         {
             db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
