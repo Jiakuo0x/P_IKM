@@ -1,6 +1,6 @@
-using Data.Enums;
+using Database.Enums;
 
-namespace Data.Models;
+namespace Database.Models;
 
 public class ElectronicSignatureTaskLog : EntityBase<Guid>
 {

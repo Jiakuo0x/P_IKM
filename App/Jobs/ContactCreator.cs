@@ -1,176 +1,119 @@
-﻿using Data.Enums;
-using Data.Models;
+﻿using Database.Enums;
+using Database.Models;
 using Lib.DocuSign;
+using Services;
 
-namespace App.Jobs
+namespace Jobs;
+
+public class ContactCreator : BackgroundService
 {
-    public class ContactCreator : BackgroundService
+    private readonly ILogger<ContactCreator> _logger;
+    private readonly DbContext _db;
+    private readonly DocuSignService _docuSign;
+    private readonly Lib.BestSign.ApiClient _bestSign;
+    private readonly TaskService _taskService;
+    private readonly DocumentService _documentService;
+
+    public ContactCreator(
+        ILogger<ContactCreator> logger,
+        IServiceScopeFactory serviceScopeFactory)
     {
-        private readonly ILogger<DocuSignReader> _logger;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly IOptions<Lib.DocuSign.Configuration> _docuSignOptions;
-        private readonly DocuSignService _docuSignService;
-        public ContactCreator(
-            ILogger<DocuSignReader> logger,
-            IServiceScopeFactory serviceScopeFactory,
-            IOptions<Lib.DocuSign.Configuration> docuSignOptions,
-            DocuSignService docuSignService)
+        _logger = logger;
+
+        var serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
+        _db = serviceProvider.GetRequiredService<DbContext>();
+        _docuSign = serviceProvider.GetRequiredService<DocuSignService>();
+        _bestSign = serviceProvider.GetRequiredService<Lib.BestSign.ApiClient>();
+        _taskService = serviceProvider.GetRequiredService<TaskService>();
+        _documentService = serviceProvider.GetRequiredService<DocumentService>();
+    }
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (true)
         {
-            _logger = logger;
-            _serviceScopeFactory = serviceScopeFactory;
-            _docuSignOptions = docuSignOptions;
-            _docuSignService = docuSignService;
-        }
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            while (true)
+            try
             {
-                try
-                {
-                    await DoWork();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error in ContractCreator");
-                }
-                finally
-                {
-                    await Task.Delay(TimeSpan.FromMinutes(10));
-                }
+                await DoWork();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ContractCreator");
+            }
+            finally
+            {
+                await Task.Delay(TimeSpan.FromMinutes(10));
             }
         }
-        protected async Task DoWork()
+    }
+    protected async Task DoWork()
+    {
+        var tasks = _db.Set<ElectronicSignatureTask>().Where(i => i.CurrentStep == TaskStep.ContractCreating).ToList();
+        foreach (var task in tasks)
         {
-            var db = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<DbContext>();
-            var tasks = db.Set<ElectronicSignatureTask>().Where(i => i.CurrentStep == TaskStep.ContractCreating).ToList();
-            foreach (var task in tasks)
+            try
             {
-                try
-                {
-                    CreateContractModel createContractModel = new CreateContractModel { Task = task };
+                CreateContractModel createContractModel = new CreateContractModel { Task = task };
 
-                    MatchEnvelope(createContractModel);
-                    MatchTemplateMapping(createContractModel);
-                    var contract = await CreateContract(createContractModel);
+                createContractModel.Envelope = await _docuSign.GetEnvelopeAsync(task.DocuSignEnvelopeId);
+                MatchTemplateMapping(createContractModel);
+                var contract = await CreateContract(createContractModel);
 
-                    task.BestSignContractId = contract.ContractId;
-                    TaskStatusChange(db, task, TaskStep.ContractCreated);
-                }
-                catch (Exception ex)
-                {
-                    LogError(db, task, ex.Message);
-                }
-                db.SaveChanges();
+                task.BestSignContractId = contract.ContractId;
+                _taskService.ChangeStep(task.Id, TaskStep.ContractCreated);
             }
-        }
-
-        protected void MatchEnvelope(CreateContractModel createContractModel)
-        {
-            var docusignService = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<DocuSignService>();
-            var envelope = docusignService.GetEnvelopeAsync(createContractModel.Task.DocuSignEnvelopeId).GetAwaiter().GetResult();
-            createContractModel.Envelope = envelope;
-        }
-        protected void MatchTemplateMapping(CreateContractModel createContractModel)
-        {
-            var db = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<DbContext>();
-            var envelopeType = createContractModel.Envelope
-                .CustomFields.TextCustomFields.SingleOrDefault(i => i.Name == "Envelope Type");
-            if (envelopeType == null) throw new Exception("System Error: Not found the custom field 'Envelope Type'.");
-
-            var templateMapping = db.Set<TemplateMapping>().SingleOrDefault(i => i.DocuSignTemplateId == envelopeType.Value);
-            if (templateMapping == null) throw new Exception("System Error: Not found the template mapping in the system.");
-
-            createContractModel.TemplateMapping = templateMapping;
-        }
-
-        protected async Task<CreateContractSuccessModel> CreateContract(CreateContractModel createContractModel)
-        {
-            List<Object> requestDocuments = new();
-            foreach (var document in createContractModel.Envelope.EnvelopeDocuments)
+            catch (Exception ex)
             {
-                if (document.Name == "Summary") continue;
-                var docContent = await ConvertDocument(createContractModel, document);
-                requestDocuments.Add(new
-                {
-                    content = docContent,
-                    fileName = document.Name,
-                });
+                _taskService.LogError(task.Id, ex.Message);
             }
+            _db.SaveChanges();
+        }
+    }
 
-            var bestSignApiClient = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<Lib.BestSign.ApiClient>();
-            var apiResponse = await bestSignApiClient.Post<CreateContractSuccessModel>($"/api/templates/send-contracts-sync-v2", new
+    protected void MatchTemplateMapping(CreateContractModel createContractModel)
+    {
+        var envelopeType = createContractModel.Envelope
+            .CustomFields.TextCustomFields.SingleOrDefault(i => i.Name == "Envelope Type");
+        if (envelopeType == null) throw new Exception("System Error: Not found the custom field 'Envelope Type'.");
+
+        var templateMapping = _db.Set<TemplateMapping>().SingleOrDefault(i => i.DocuSignTemplateId == envelopeType.Value);
+        if (templateMapping == null) throw new Exception("System Error: Not found the template mapping in the system.");
+
+        createContractModel.TemplateMapping = templateMapping;
+    }
+
+    protected async Task<CreateContractSuccessModel> CreateContract(CreateContractModel createContractModel)
+    {
+        List<Object> requestDocuments = new();
+        foreach (var document in createContractModel.Envelope.EnvelopeDocuments)
+        {
+            if (document.Name == "Summary") continue;
+            var docFile = await _docuSign.DownloadDocument(createContractModel.Envelope.EnvelopeId, document.DocumentId);
+            var docContent = _documentService.DecryptDocument(docFile);
+            requestDocuments.Add(new
             {
-                templateId = createContractModel.TemplateMapping!.BestSignTemplateId,
-                documents = requestDocuments,
+                content = docContent,
+                fileName = document.Name,
             });
-
-            return apiResponse;
         }
 
-        protected async Task<byte[]> ConvertDocument(CreateContractModel createContractModel, EnvelopeDocument document)
+        var apiResponse = await _bestSign.Post<CreateContractSuccessModel>($"/api/templates/send-contracts-sync-v2", new
         {
-            var file = await _docuSignService.DownloadDocument(createContractModel.Task.DocuSignEnvelopeId, document.DocumentId);
-            Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument();
-            pdf.LoadFromStream(file);
-            Spire.Pdf.Widget.PdfFormWidget widgets = (pdf.Form as Spire.Pdf.Widget.PdfFormWidget)
-                ?? throw new Exception("System Error: DocuSing document is not a PDF file.");
+            templateId = createContractModel.TemplateMapping!.BestSignTemplateId,
+            documents = requestDocuments,
+        });
 
-            for (int i = 0; i < widgets!.FieldsWidget.List.Count; i++)
-            {
-                Spire.Pdf.Widget.PdfFieldWidget widget = (widgets.FieldsWidget[i] as Spire.Pdf.Widget.PdfFieldWidget)
-                    ?? throw new Exception("System Error: DocuSing document is not a PDF file.");
+        return apiResponse;
+    }
 
-                if (widget is Spire.Pdf.Widget.PdfSignatureFieldWidget)
-                {
-                    widgets.FieldsWidget.RemoveAt(i);
-                }
-            }
-            var stream = new MemoryStream();
-            pdf.SaveToStream(stream);
+    public class CreateContractModel
+    {
+        public ElectronicSignatureTask Task { get; set; } = null!;
+        public TemplateMapping? TemplateMapping { get; set; }
+        public Envelope Envelope { get; set; } = null!;
+    }
 
-            var result = stream.ToArray();
-            stream.Dispose();
-
-            return result;
-        }
-        protected void LogError(DbContext db, ElectronicSignatureTask task, string message)
-        {
-            db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
-            {
-                TaskId = task.Id,
-                Step = task.CurrentStep,
-                Log = $"[Error] {message}"
-            });
-            task.Counter++;
-
-            if (task.Counter >= 5)
-            {
-                TaskStatusChange(db, task, TaskStep.ContractCreatingFailed);
-            }
-        }
-
-        protected void TaskStatusChange(DbContext db, ElectronicSignatureTask task, TaskStep to)
-        {
-            db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
-            {
-                TaskId = task.Id,
-                Step = task.CurrentStep,
-                Log = $"[Task Step Change] {task.CurrentStep} -> {to}",
-            });
-            task.CurrentStep = to;
-            task.Counter = 0;
-        }
-
-        public class CreateContractModel
-        {
-            public ElectronicSignatureTask Task { get; set; } = null!;
-            public TemplateMapping? TemplateMapping { get; set; }
-            public Envelope Envelope { get; set; } = null!;
-        }
-
-        public class CreateContractSuccessModel
-        {
-            public string ContractId { get; set; } = null!;
-        }
+    public class CreateContractSuccessModel
+    {
+        public string ContractId { get; set; } = null!;
     }
 }

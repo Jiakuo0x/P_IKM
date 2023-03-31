@@ -1,5 +1,5 @@
-using App.Data.TransportModels;
-using Data.Models;
+using Dtos;
+using Database.Models;
 
 namespace Controllers;
 

@@ -1,101 +1,62 @@
 ﻿using DocuSign.eSign.Model;
-using Data.Models;
-using Data.Enums;
+using Database.Models;
+using Database.Enums;
 using Lib.BestSign.Dtos;
+using Services;
 
-namespace App.Jobs
+namespace Jobs;
+
+public class ContactCanceller : BackgroundService
 {
-    public class ContactCanceller : BackgroundService
+    private readonly ILogger<DocuSignReader> _logger;
+    private readonly TaskService _taskService;
+    private readonly Lib.BestSign.ApiClient _bestSign;
+    public ContactCanceller(
+        ILogger<DocuSignReader> logger,
+        IServiceScopeFactory serviceScopeFactory)
     {
-        private readonly ILogger<DocuSignReader> _logger;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly IOptions<Lib.DocuSign.Configuration> _docuSignOptions;
-        public ContactCanceller(
-            ILogger<DocuSignReader> logger,
-            IServiceScopeFactory serviceScopeFactory,
-            IOptions<Lib.DocuSign.Configuration> docuSignOptions)
+        _logger = logger;
+
+        var provider = serviceScopeFactory.CreateScope().ServiceProvider;
+        _taskService = provider.GetRequiredService<TaskService>();
+        _bestSign = provider.GetRequiredService<Lib.BestSign.ApiClient>();
+    }
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (true)
         {
-            _logger = logger;
-            _serviceScopeFactory = serviceScopeFactory;
-            _docuSignOptions = docuSignOptions;
-        }
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            while (true)
+            try
             {
-                try
-                {
-                    await DoWork();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error in ContactCanceller");
-                }
-                finally
-                {
-                    await Task.Delay(TimeSpan.FromMinutes(10));
-                }
+                await DoWork();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ContactCanceller");
+            }
+            finally
+            {
+                await Task.Delay(TimeSpan.FromMinutes(10));
             }
         }
-        protected async Task DoWork()
+    }
+    protected async Task DoWork()
+    {
+        var tasks = _taskService.GetTasksByStep(TaskStep.ContractCancelling);
+
+        foreach (var task in tasks)
         {
-            var dbContext = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<DbContext>();
-            var bestSignApiClient = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<Lib.BestSign.ApiClient>();
-
-            var tasks = dbContext.Set<ElectronicSignatureTask>()
-                .Where(i => i.CurrentStep == TaskStep.ContractCancelling).ToList();
-
-            foreach (var task in tasks)
+            try
             {
-                try
+                var apiResponse = await _bestSign.Post<object>($"/api/contracts/{task.BestSignContractId}/revoke", new
                 {
-                    var apiResponse = await bestSignApiClient.Post<ApiResponse>($"/api/contracts/{task.BestSignContractId}/revoke", new
-                    {
-                        revokeReason = "The system has cancelled the contract because the relevant envelope of DocuSign has been cancelled",
-                    });
-                    if (apiResponse.Code == "0")
-                    {
-                        TaskStatusChange(dbContext, task, TaskStep.ContractCancelled);
-                    }
-                    else
-                    {
-                        LogError(dbContext, task, apiResponse.Message);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogError(dbContext, task, ex.Message);
-                }
+                    revokeReason = "The system has cancelled the contract because the relevant envelope of DocuSign has been cancelled",
+                });
+                _taskService.ChangeStep(task.Id, TaskStep.ContractCancelled);
             }
-            dbContext.SaveChanges();
-        }
-
-        protected void LogError(DbContext db, ElectronicSignatureTask task, string error)
-        {
-            db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
+            catch (Exception ex)
             {
-                TaskId = task.Id,
-                Step = task.CurrentStep,
-                Log = $"[Error] {error}",
-            });
-            task.Counter++;
-
-            if(task.Counter >= 5)
-            {
-                TaskStatusChange(db, task, TaskStep.ContractCancellingFailed);
+                _taskService.LogError(task.Id, ex.Message);
             }
-        }
-
-        protected void TaskStatusChange(DbContext db, ElectronicSignatureTask task, TaskStep to)
-        {
-            db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
-            {
-                TaskId = task.Id,
-                Step = task.CurrentStep,
-                Log = $"[Task Step Change] {task.CurrentStep} -> {to}",
-            });
-            task.CurrentStep = to;
-            task.Counter = 0;
         }
     }
 }

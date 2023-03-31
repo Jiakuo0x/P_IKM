@@ -1,5 +1,6 @@
-namespace Data.Models;
-using Data.Enums;
+using Database.Enums;
+
+namespace Database.Models;
 
 public class ElectronicSignatureTask : EntityBase
 {

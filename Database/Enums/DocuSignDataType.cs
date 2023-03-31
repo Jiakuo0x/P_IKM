@@ -1,4 +1,4 @@
-namespace Data.Enums;
+namespace Database.Enums;
 
 public enum DocuSignDataType
 {

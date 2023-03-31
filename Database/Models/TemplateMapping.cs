@@ -1,8 +1,7 @@
-namespace Data.Models;
-
 using System.ComponentModel.DataAnnotations.Schema;
-using Data.Enums;
+using Database.Enums;
 
+namespace Database.Models;
 
 public class TemplateMapping : EntityBase
 {

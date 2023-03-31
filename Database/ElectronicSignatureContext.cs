@@ -1,4 +1,6 @@
-namespace Data;
+namespace Database;
+
+using Models;
 
 public class ElectronicSignatureContext : DbContextBase
 {
@@ -6,22 +8,22 @@ public class ElectronicSignatureContext : DbContextBase
     {
     }
 
-    public DbSet<Models.TemplateMapping>? TemplateMappings { get; set; }
-    public DbSet<Models.ElectronicSignatureTask>? Tasks { get; set; }
-    public DbSet<Models.ElectronicSignatureTaskLog>? TaskLogs { get; set; }
+    public DbSet<TemplateMapping>? TemplateMappings { get; set; }
+    public DbSet<ElectronicSignatureTask>? Tasks { get; set; }
+    public DbSet<ElectronicSignatureTaskLog>? TaskLogs { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Models.ElectronicSignatureTask>()
+        modelBuilder.Entity<ElectronicSignatureTask>()
             .HasIndex(i => i.DocuSignEnvelopeId);
 
-        modelBuilder.Entity<Models.ElectronicSignatureTaskLog>()
+        modelBuilder.Entity<ElectronicSignatureTaskLog>()
             .HasIndex(i => i.TaskId);
 
-        modelBuilder.Entity<Models.TemplateMapping>()
+        modelBuilder.Entity<TemplateMapping>()
             .HasIndex(i => i.DocuSignTemplateId);
     }
 }

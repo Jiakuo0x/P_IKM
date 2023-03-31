@@ -1,6 +1,6 @@
-﻿using Data.Enums;
+﻿using Database.Enums;
 
-namespace App.Data.TransportModels
+namespace Dtos
 {
     public class ParameterMappingDto
     {

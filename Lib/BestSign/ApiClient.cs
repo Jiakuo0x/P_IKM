@@ -58,19 +58,6 @@ public class ApiClient
 
         return apiResponse.Data;
     }
-    public async Task<string> GetString(string uri)
-    {
-        HttpClient client = new HttpClient();
-        await GenerateSignature(client, uri);
-        var test = await client.GetAsync(_options.Value.ServerHost + uri);
-        var testContent = await test.Content.ReadAsStringAsync();
-        var apiResponse = await client.GetStringAsync(_options.Value.ServerHost + uri);
-
-        if (apiResponse is null)
-            throw new Exception($"[BestSign Error] [Return Value Error] URL:{client.BaseAddress}");
-
-        return apiResponse;
-    }
 
     public async Task<T> Post<T>(string url, object data)
     {
@@ -86,18 +73,5 @@ public class ApiClient
             throw new Exception($"[BestSign Error] Code:{apiResponse.Code} Message:{apiResponse.Message}");
 
         return apiResponse.Data;
-    }
-
-    public async Task<string> PostString(string url, object data)
-    {
-        HttpClient client = new HttpClient();
-        await GenerateSignature(client, url, data);
-        var resposneMessage = await client.PostAsJsonAsync(_options.Value.ServerHost + url, data);
-        var apiResponse = await resposneMessage.Content.ReadAsStringAsync();
-
-        if (apiResponse is null)
-            throw new Exception($"[BestSign Error] [Return Value Error] URL:{client.BaseAddress}");
-
-        return apiResponse;
     }
 }

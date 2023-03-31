@@ -1,4 +1,4 @@
-namespace Data.Enums;
+namespace Database.Enums;
 
 public enum TaskStep
 {
@@ -6,11 +6,11 @@ public enum TaskStep
 
     ContractCreating,
     ContractCreated,
-    ContractCreatingFailed,
 
     ContractCancelling,
     ContractCancelled,
-    ContractCancellingFailed,
 
-    ContractCompleted,
+    Completed,
+
+    Failed,
 }

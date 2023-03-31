@@ -48,19 +48,6 @@ public class DocuSignService
         await envelopesApi.CreateEnvelopeCommentsAsync(_options.Value.AccountId, envelopeId, commentsPublish);
     }
 
-    public async Task AddComments(string[] comments, string envelopeId)
-    {
-        var client = _clientManager.GetClient();
-        EnvelopesApi envelopesApi = new(client);
-        List<CommentPublish> publishers = new List<CommentPublish>();
-        foreach(var comment in comments)
-        {
-            publishers.Add(new CommentPublish(Text: comment));
-        }
-        CommentsPublish commentsPublish = new CommentsPublish(publishers);
-        await envelopesApi.CreateEnvelopeCommentsAsync(_options.Value.AccountId, envelopeId, commentsPublish);
-    }
-
     public async Task<Stream> DownloadDocument(string envelopeId, string documentId)
     {
         var client = _clientManager.GetClient();

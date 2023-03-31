@@ -1,4 +1,4 @@
-﻿namespace App.Data.TransportModels
+﻿namespace Dtos
 {
     public class TemplateMappingDto
     {

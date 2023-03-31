@@ -13,11 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Database\Database.csproj" />
     <ProjectReference Include="..\Lib\Lib.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Migrations\" />
+    <ProjectReference Include="..\Services\Services.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
