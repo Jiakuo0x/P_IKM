@@ -83,37 +83,108 @@ public class ContactCreator : BackgroundService
 
     protected async Task<CreateContractSuccessModel> CreateContract(CreateContractModel createContractModel)
     {
-        List<Object> requestDocuments = new();
-        foreach (var document in createContractModel.Envelope.EnvelopeDocuments)
-        {
-            if (document.Name == "Summary") continue;
-            var docFile = await _docuSign.DownloadDocument(createContractModel.Envelope.EnvelopeId, document.DocumentId);
-            var docContent = _documentService.DecryptDocument(docFile);
-            requestDocuments.Add(new
-            {
-                content = docContent,
-                fileName = document.Name,
-            });
-        }
+        var sender = CreateContractSender();
+        var roles = CreateContractRoles();
+        var documents = await CreateContractDocuments(createContractModel.Envelope.EnvelopeId, createContractModel.Envelope.EnvelopeDocuments);
 
         var apiResponse = await _bestSign.Post<CreateContractSuccessModel>($"/api/templates/send-contracts-sync-v2", new
         {
+            sender = sender,
             templateId = createContractModel.TemplateMapping!.BestSignTemplateId,
-            documents = requestDocuments,
+            documents = documents,
+            roles = roles,
         });
 
         return apiResponse;
+
     }
 
-    public class CreateContractModel
+    protected async Task<object> CreateContractDocuments(string envelopeId ,List<EnvelopeDocument> documents)
     {
-        public ElectronicSignatureTask Task { get; set; } = null!;
-        public TemplateMapping? TemplateMapping { get; set; }
-        public Envelope Envelope { get; set; } = null!;
+        List<Object> result = new();
+        foreach (var document in documents)
+        {
+            if (document.Name == "Summary") continue;
+
+            var docFile = await _docuSign.DownloadDocument(envelopeId, document.DocumentId);
+            var docContent = _documentService.DecryptDocument(docFile);
+            result.Add(new
+            {
+                content = docContent,
+                fileName = document.Name,
+                contractConfig = new
+                {
+                    contractTitle = "Test Title",
+                },
+                appendingSignLables = new List<Object>
+                {
+                    new
+                    {
+                        x = 0.2,
+                        y = 0.2,
+                        pageNumber = 1,
+                        roleName = "Enterprise",
+                        type = "SEAL",
+                    },
+                    new
+                    {
+                        x = 0.2,
+                        y = 0.8,
+                        pageNumber = 1,
+                        roleName = "Customer",
+                        type = "SIGNATURE",
+                    },
+                }
+            });
+        }
+        return result;
     }
 
-    public class CreateContractSuccessModel
+    protected object CreateContractSender()
     {
-        public string ContractId { get; set; } = null!;
+        var result = new
+        { 
+            account = "sender",
+            enterpriseName = "宜家贸易（中国）有限公司",
+        };
+
+        return result;
     }
+
+    protected object CreateContractRoles()
+    {
+        List<Object> result = new();
+        result.Add(new
+        {
+            roleId = "3277656591122007042",
+            userInfo = new
+            {
+                userAccount = "",
+                userName = "",
+            },
+        });
+        result.Add(new
+        {
+            roleId = "3277656591180727299",
+            userInfo = new
+            {
+                userAccount = "",
+                userName = "",
+            },
+        });
+
+        return result;
+    }
+}
+
+public class CreateContractModel
+{
+    public ElectronicSignatureTask Task { get; set; } = null!;
+    public TemplateMapping? TemplateMapping { get; set; }
+    public Envelope Envelope { get; set; } = null!;
+}
+
+public class CreateContractSuccessModel
+{
+    public string ContractId { get; set; } = null!;
 }
