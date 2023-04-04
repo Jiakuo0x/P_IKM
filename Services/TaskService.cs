@@ -19,10 +19,9 @@ public class TaskService
         return tasks;
     }
 
-    public ElectronicSignatureTask GetTaskByBestSignContractId(string contractId)
+    public ElectronicSignatureTask? GetTaskByBestSignContractId(string contractId)
     {
         var task = _db.Set<ElectronicSignatureTask>().AsNoTracking().SingleOrDefault(i => i.BestSignContractId == contractId);
-        if (task is null) throw new Exception($"Task with BestSignContractId {contractId} not found");
         return task;
     }
 
