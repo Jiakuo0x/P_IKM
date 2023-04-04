@@ -19,6 +19,8 @@ public class ElectronicSignatureContext : DbContextBase
 
         modelBuilder.Entity<ElectronicSignatureTask>()
             .HasIndex(i => i.DocuSignEnvelopeId);
+        modelBuilder.Entity<ElectronicSignatureTask>()
+            .HasIndex(i => i.BestSignContractId);
 
         modelBuilder.Entity<ElectronicSignatureTaskLog>()
             .HasIndex(i => i.TaskId);

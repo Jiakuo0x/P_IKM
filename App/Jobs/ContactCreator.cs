@@ -144,8 +144,9 @@ public class ContactCreator : BackgroundService
     {
         var result = new
         { 
-            account = "sender",
+            account = "13511031927",
             enterpriseName = "宜家贸易（中国）有限公司",
+            bizName = "宜家贸易（中国）有限公司_DocuSign签核",
         };
 
         return result;
@@ -156,22 +157,22 @@ public class ContactCreator : BackgroundService
         List<Object> result = new();
         result.Add(new
         {
-            roleId = "3277656591122007042",
+            roleId = "3277655698381177863",
             userInfo = new
             {
-                userAccount = "",
-                userName = "",
+                userAccount = "13511031927",
+                enterpriseName = "宜家贸易（中国）有限公司",
             },
         });
-        result.Add(new
-        {
-            roleId = "3277656591180727299",
-            userInfo = new
-            {
-                userAccount = "",
-                userName = "",
-            },
-        });
+        // result.Add(new
+        // {
+        //     roleId = "3277656591180727299",
+        //     userInfo = new
+        //     {
+        //         userAccount = "13511031927",
+        //         enterpriseName = "宜家贸易（中国）有限公司",
+        //     },
+        // });
 
         return result;
     }

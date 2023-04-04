@@ -19,6 +19,26 @@ public class TaskService
         return tasks;
     }
 
+    public ElectronicSignatureTask GetTaskByBestSignContractId(string contractId)
+    {
+        var task = _db.Set<ElectronicSignatureTask>().AsNoTracking().SingleOrDefault(i => i.BestSignContractId == contractId);
+        if (task is null) throw new Exception($"Task with BestSignContractId {contractId} not found");
+        return task;
+    }
+
+    public void LogInfo(int taskId, string info)
+    {
+        var task = _db.Set<ElectronicSignatureTask>().AsNoTracking().Single(i => i.Id == taskId);
+
+        _db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
+        {
+            TaskId = task.Id,
+            Step = task.CurrentStep,
+            Log = $"[Info] {info}",
+        });
+        _db.SaveChanges();
+    }
+
     public void LogError(int taskId, string error, int maxErrorCount = 5)
     {
         var task = _db.Set<ElectronicSignatureTask>().Single(i => i.Id == taskId);

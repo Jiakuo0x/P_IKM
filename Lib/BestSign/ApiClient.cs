@@ -63,7 +63,10 @@ public class ApiClient
     {
         HttpClient client = new HttpClient();
         await GenerateSignature(client, url, data);
-        var resposneMessage = await client.PostAsJsonAsync(_options.Value.ServerHost + url, data);
+
+        string requestMessage = JsonConvert.SerializeObject(data);
+        HttpContent content = new StringContent(requestMessage, Encoding.UTF8, "application/json");
+        var resposneMessage = await client.PostAsync(_options.Value.ServerHost + url, content);
         var apiResponse = await resposneMessage.Content.ReadFromJsonAsync<ApiResponse<T>>();
 
         if (apiResponse is null)

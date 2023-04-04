@@ -11,7 +11,7 @@ builder.Services.AddDbContext<DbContext, Database.ElectronicSignatureContext>(op
 builder.Services.AddOptions<Lib.DocuSign.Configuration>()
     .Bind(builder.Configuration.GetSection("DocuSign"));
 builder.Services.AddScoped<Lib.DocuSign.ClientManager>();
-builder.Services.AddScoped<Lib.DocuSign.DocuSignService>();
+builder.Services.AddScoped<DocuSignService>();
 
 builder.Services.AddOptions<Lib.BestSign.Configuration>()
     .Bind(builder.Configuration.GetSection("BestSign"));

@@ -6,6 +6,7 @@ public enum TaskStep
 
     ContractCreating,
     ContractCreated,
+    ContractOverdue,
 
     ContractCancelling,
     ContractCancelled,

@@ -1,7 +1,9 @@
 ﻿using DocuSign.eSign.Api;
 using DocuSign.eSign.Model;
+using Lib.DocuSign;
+using Microsoft.Extensions.Options;
 
-namespace Lib.DocuSign;
+namespace Services;
 
 public class DocuSignService
 {
@@ -38,7 +40,7 @@ public class DocuSignService
         return envelope;
     }
 
-    public async Task AddComment(string comment, string envelopeId)
+    public async Task AddComment(string envelopeId, string comment)
     {
         var client = _clientManager.GetClient();
         EnvelopesApi envelopesApi = new(client);
