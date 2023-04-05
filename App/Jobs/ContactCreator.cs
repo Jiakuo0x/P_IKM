@@ -72,7 +72,7 @@ public class ContactCreator : BackgroundService
     protected void MatchTemplateMapping(CreateContractModel createContractModel)
     {
         var envelopeType = createContractModel.Envelope
-            .CustomFields.TextCustomFields.SingleOrDefault(i => i.Name == "Envelope Type");
+            .CustomFields.ListCustomFields.SingleOrDefault(i => i.Name == "eStamp Type");
         if (envelopeType == null) throw new Exception("System Error: Not found the custom field 'Envelope Type'.");
 
         var templateMapping = _db.Set<TemplateMapping>().SingleOrDefault(i => i.DocuSignTemplateId == envelopeType.Value);
@@ -99,7 +99,7 @@ public class ContactCreator : BackgroundService
 
     }
 
-    protected async Task<object> CreateContractDocuments(string envelopeId ,List<EnvelopeDocument> documents)
+    protected async Task<object> CreateContractDocuments(string envelopeId, List<EnvelopeDocument> documents)
     {
         List<Object> result = new();
         foreach (var document in documents)
@@ -108,34 +108,45 @@ public class ContactCreator : BackgroundService
 
             var docFile = await _docuSign.DownloadDocument(envelopeId, document.DocumentId);
             var docContent = _documentService.DecryptDocument(docFile);
-            result.Add(new
+            var item = new
             {
                 content = docContent,
                 fileName = document.Name,
                 contractConfig = new
                 {
-                    contractTitle = "Test Title",
+                    contractTitle = document.Name,
                 },
-                appendingSignLables = new List<Object>
+                appendingSignLables = new List<Object>(),
+            };
+
+            var docTabs = await _docuSign.GetDocumentTabs(envelopeId, document.DocumentId);
+            var aStamp = docTabs.SignHereTabs?.SingleOrDefault(i => i.TabLabel == "A Stamp Here");
+            if (aStamp != null)
+            {
+                item.appendingSignLables.Add(new
                 {
-                    new
-                    {
-                        x = 0.2,
-                        y = 0.2,
-                        pageNumber = 1,
-                        roleName = "Enterprise",
-                        type = "SEAL",
-                    },
-                    new
-                    {
-                        x = 0.2,
-                        y = 0.8,
-                        pageNumber = 1,
-                        roleName = "Customer",
-                        type = "SIGNATURE",
-                    },
-                }
-            });
+                    x = aStamp.XPosition,
+                    y = aStamp.YPosition,
+                    pageNumber = aStamp.PageNumber,
+                    roleName = "Customer",
+                    type = "SIGNATURE",
+                });
+            }
+
+            var bStamp = docTabs.SignHereTabs?.SingleOrDefault(i => i.TabLabel == "B Stamp Here");
+            if (bStamp != null)
+            {
+                item.appendingSignLables.Add(new
+                {
+                    x = bStamp.XPosition,
+                    y = bStamp.YPosition,
+                    pageNumber = bStamp.PageNumber,
+                    roleName = "Customer",
+                    type = "SIGNATURE",
+                });
+            }
+
+            result.Add(item);
         }
         return result;
     }
@@ -143,7 +154,7 @@ public class ContactCreator : BackgroundService
     protected object CreateContractSender()
     {
         var result = new
-        { 
+        {
             account = "13511031927",
             enterpriseName = "宜家贸易（中国）有限公司",
             bizName = "宜家贸易（中国）有限公司_DocuSign签核",

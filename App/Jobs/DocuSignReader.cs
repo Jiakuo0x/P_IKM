@@ -12,14 +12,15 @@ public class DocuSignReader : BackgroundService
     private readonly IOptions<Lib.DocuSign.Configuration> _docuSignOptions;
     public DocuSignReader(
         ILogger<DocuSignReader> logger,
-        DocuSignService docuSignService,
         IServiceScopeFactory serviceScopeFactory,
         IOptions<Lib.DocuSign.Configuration> docuSignOptions)
     {
         _logger = logger;
-        _docuSignService = docuSignService;
         _serviceScopeFactory = serviceScopeFactory;
         _docuSignOptions = docuSignOptions;
+
+        var provider = _serviceScopeFactory.CreateScope().ServiceProvider;
+        _docuSignService = provider.GetRequiredService<DocuSignService>();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -96,7 +97,7 @@ public class DocuSignReader : BackgroundService
         var recipients = envelope.Recipients;
         if (recipients is null) return false;
 
-        var listener = recipients.Editors.SingleOrDefault(i => i.Email == _docuSignOptions.Value.ListenEmail && i.RoutingOrder == recipients.CurrentRoutingOrder);
+        var listener = recipients.Signers.SingleOrDefault(i => i.Email == _docuSignOptions.Value.ListenEmail && i.RoutingOrder == recipients.CurrentRoutingOrder);
         if (listener is null) return false;
 
         return true;
