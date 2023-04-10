@@ -157,7 +157,7 @@ public class ContactCreator : BackgroundService
         {
             account = "13511031927",
             enterpriseName = "宜家贸易（中国）有限公司",
-            bizName = "宜家贸易（中国）有限公司_DocuSign签核",
+            bizName = "虚拟",
         };
 
         return result;
@@ -175,15 +175,15 @@ public class ContactCreator : BackgroundService
                 enterpriseName = "宜家贸易（中国）有限公司",
             },
         });
-        // result.Add(new
-        // {
-        //     roleId = "3277656591180727299",
-        //     userInfo = new
-        //     {
-        //         userAccount = "13511031927",
-        //         enterpriseName = "宜家贸易（中国）有限公司",
-        //     },
-        // });
+        result.Add(new
+        {
+            roleId = "3277656591180727299",
+            userInfo = new
+            {
+                userAccount = "13511031927",
+                enterpriseName = "宜家贸易（中国）有限公司",
+            },
+        });
 
         return result;
     }
