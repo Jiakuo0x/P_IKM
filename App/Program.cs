@@ -21,9 +21,13 @@ builder.Services.AddScoped<Lib.BestSign.ApiClient>();
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<DocumentService>();
 
+builder.Services.AddOptions<Lib.Email.Configuration>()
+    .Bind(builder.Configuration.GetSection("EmailSender"));
+builder.Services.AddScoped<EmailService>();
+
 // builder.Services.AddHostedService<DocuSignReader>();
-builder.Services.AddHostedService<ContactCreator>();
-//builder.Services.AddHostedService<ContactCanceller>();
+// builder.Services.AddHostedService<ContactCreator>();
+// builder.Services.AddHostedService<ContactCanceller>();
 
 var app = builder.Build();
 app.UseSwagger();

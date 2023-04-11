@@ -1,3 +1,5 @@
+using Services;
+
 namespace Controllers;
 
 [ApiController]
@@ -8,9 +10,10 @@ public class TestController : ControllerBase
     {
     }
 
-    [HttpGet]
-    public bool Test()
+    [HttpGet("send-email")]
+    public bool SendEmail(EmailService emailService)
     {
+        emailService.SendEmail("jiakuo.zhang@quest-global.com", "Test Title", "Test Content");
         return true;
     }
 }

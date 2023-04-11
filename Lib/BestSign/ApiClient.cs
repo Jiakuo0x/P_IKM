@@ -52,8 +52,8 @@ public class ApiClient
 
         if (apiResponse is null)
             throw new Exception($"[BestSign Error] [Return Value Error] URL:{client.BaseAddress}");
-        
-        if(apiResponse.Code != "0")
+
+        if (apiResponse.Code != "0")
             throw new Exception($"[BestSign Error] Code:{apiResponse.Code} Message:{apiResponse.Message}");
 
         return apiResponse.Data;
@@ -65,14 +65,20 @@ public class ApiClient
         await GenerateSignature(client, url, data);
 
         string requestMessage = JsonConvert.SerializeObject(data);
+
+        //test
+        if (!File.Exists("requestMessage.json")) File.Create("requestMessage.json");
+        File.WriteAllText("requestMessage.json", requestMessage);
+
         HttpContent content = new StringContent(requestMessage, Encoding.UTF8, "application/json");
         var resposneMessage = await client.PostAsync(_options.Value.ServerHost + url, content);
         var apiResponse = await resposneMessage.Content.ReadFromJsonAsync<ApiResponse<T>>();
+        
 
         if (apiResponse is null)
             throw new Exception($"[BestSign Error] [Return Value Error] URL:{client.BaseAddress}");
 
-        if(apiResponse.Code != "0")
+        if (apiResponse.Code != "0")
             throw new Exception($"[BestSign Error] Code:{apiResponse.Code} Message:{apiResponse.Message}");
 
         return apiResponse.Data;
