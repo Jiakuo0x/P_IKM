@@ -8,10 +8,10 @@ namespace Jobs;
 public class ContactCreator : BackgroundService
 {
     private readonly ILogger<ContactCreator> _logger;
-    private readonly DbContext _db;
     private readonly DocuSignService _docuSign;
     private readonly Lib.BestSign.ApiClient _bestSign;
     private readonly TaskService _taskService;
+    private readonly TemplateMappingService _templateMappingService;
     private readonly DocumentService _documentService;
 
     public ContactCreator(
@@ -21,10 +21,10 @@ public class ContactCreator : BackgroundService
         _logger = logger;
 
         var serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
-        _db = serviceProvider.GetRequiredService<DbContext>();
         _docuSign = serviceProvider.GetRequiredService<DocuSignService>();
         _bestSign = serviceProvider.GetRequiredService<Lib.BestSign.ApiClient>();
         _taskService = serviceProvider.GetRequiredService<TaskService>();
+        _templateMappingService = serviceProvider.GetRequiredService<TemplateMappingService>();
         _documentService = serviceProvider.GetRequiredService<DocumentService>();
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -47,7 +47,7 @@ public class ContactCreator : BackgroundService
     }
     protected async Task DoWork()
     {
-        var tasks = _db.Set<ElectronicSignatureTask>().Where(i => i.CurrentStep == TaskStep.ContractCreating).ToList();
+        var tasks = _taskService.GetTasksByStep(TaskStep.ContractCreating);
         foreach (var task in tasks)
         {
             try
@@ -65,7 +65,6 @@ public class ContactCreator : BackgroundService
             {
                 _taskService.LogError(task.Id, ex.Message);
             }
-            _db.SaveChanges();
         }
     }
 
@@ -75,8 +74,7 @@ public class ContactCreator : BackgroundService
             .CustomFields.ListCustomFields.SingleOrDefault(i => i.Name == "eStamp Type");
         if (envelopeType == null) throw new Exception("System Error: Not found the custom field 'eStamp Type'.");
 
-        var templateMapping = _db.Set<TemplateMapping>().SingleOrDefault(i => i.DocuSignTemplateId == envelopeType.Value);
-        if (templateMapping == null) throw new Exception("System Error: Not found the template mapping in the system.");
+        var templateMapping = _templateMappingService.GetMappingByDocuSignId(envelopeType.Value);
 
         createContractModel.TemplateMapping = templateMapping;
     }

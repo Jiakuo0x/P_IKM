@@ -19,6 +19,7 @@ builder.Services.AddScoped<Lib.BestSign.TokenManager>();
 builder.Services.AddScoped<Lib.BestSign.ApiClient>();
 
 builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<TemplateMappingService>();
 builder.Services.AddScoped<DocumentService>();
 
 builder.Services.AddOptions<Lib.Email.Configuration>()
@@ -28,6 +29,7 @@ builder.Services.AddScoped<EmailService>();
 // builder.Services.AddHostedService<DocuSignReader>();
 // builder.Services.AddHostedService<ContactCreator>();
 // builder.Services.AddHostedService<ContactCanceller>();
+builder.Services.AddHostedService<EmailSender>();
 
 var app = builder.Build();
 app.UseSwagger();

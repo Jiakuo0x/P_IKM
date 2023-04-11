@@ -14,7 +14,7 @@ public class TaskService
     public List<ElectronicSignatureTask> GetTasksByStep(TaskStep step)
     {
         var tasks = _db.Set<ElectronicSignatureTask>()
-            .Where(i => i.CurrentStep == TaskStep.ContractCancelling)
+            .Where(i => i.CurrentStep == step)
             .AsNoTracking().ToList();
         return tasks;
     }
@@ -71,5 +71,14 @@ public class TaskService
         task.Counter = 0;
 
         _db.SaveChanges();
+    }
+
+    public List<ElectronicSignatureTaskLog> GetTaskLogs(int taskId)
+    {
+        var logs = _db.Set<ElectronicSignatureTaskLog>()
+            .Where(i => i.TaskId == taskId)
+            .OrderByDescending(i => i.Created)
+            .AsNoTracking().ToList();
+        return logs;
     }
 }
