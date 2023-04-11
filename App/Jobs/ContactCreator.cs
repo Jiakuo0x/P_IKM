@@ -9,7 +9,7 @@ public class ContactCreator : BackgroundService
 {
     private readonly ILogger<ContactCreator> _logger;
     private readonly DocuSignService _docuSign;
-    private readonly Lib.BestSign.ApiClient _bestSign;
+    private readonly BestSignService _bestSign;
     private readonly TaskService _taskService;
     private readonly TemplateMappingService _templateMappingService;
     private readonly DocumentService _documentService;
@@ -22,7 +22,7 @@ public class ContactCreator : BackgroundService
 
         var serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
         _docuSign = serviceProvider.GetRequiredService<DocuSignService>();
-        _bestSign = serviceProvider.GetRequiredService<Lib.BestSign.ApiClient>();
+        _bestSign = serviceProvider.GetRequiredService<BestSignService>();
         _taskService = serviceProvider.GetRequiredService<TaskService>();
         _templateMappingService = serviceProvider.GetRequiredService<TemplateMappingService>();
         _documentService = serviceProvider.GetRequiredService<DocumentService>();

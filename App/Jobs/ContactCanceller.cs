@@ -10,7 +10,7 @@ public class ContactCanceller : BackgroundService
 {
     private readonly ILogger<DocuSignReader> _logger;
     private readonly TaskService _taskService;
-    private readonly Lib.BestSign.ApiClient _bestSign;
+    private readonly BestSignService _bestSign;
     public ContactCanceller(
         ILogger<DocuSignReader> logger,
         IServiceScopeFactory serviceScopeFactory)
@@ -19,7 +19,7 @@ public class ContactCanceller : BackgroundService
 
         var provider = serviceScopeFactory.CreateScope().ServiceProvider;
         _taskService = provider.GetRequiredService<TaskService>();
-        _bestSign = provider.GetRequiredService<Lib.BestSign.ApiClient>();
+        _bestSign = provider.GetRequiredService<BestSignService>();
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

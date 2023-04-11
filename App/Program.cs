@@ -16,7 +16,7 @@ builder.Services.AddScoped<DocuSignService>();
 builder.Services.AddOptions<Lib.BestSign.Configuration>()
     .Bind(builder.Configuration.GetSection("BestSign"));
 builder.Services.AddScoped<Lib.BestSign.TokenManager>();
-builder.Services.AddScoped<Lib.BestSign.ApiClient>();
+builder.Services.AddScoped<BestSignService>();
 
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<TemplateMappingService>();

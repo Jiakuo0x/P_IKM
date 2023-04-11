@@ -1,15 +1,20 @@
+using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
+using Lib.BestSign;
 using Lib.BestSign.Common;
 using Lib.BestSign.Dtos;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
-namespace Lib.BestSign;
+namespace Services;
 
-public class ApiClient
+public class BestSignService
 {
     private readonly IOptions<Configuration> _options;
     private readonly TokenManager _tokenManager;
-    public ApiClient(IOptions<Configuration> options, TokenManager tokenManager)
+    public BestSignService(IOptions<Configuration> options, TokenManager tokenManager)
     {
         _options = options;
         _tokenManager = tokenManager;
