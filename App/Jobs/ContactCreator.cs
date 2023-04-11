@@ -122,8 +122,8 @@ public class ContactCreator : BackgroundService
                 {
                     contractTitle = $"{document.Name}.pdf",
                 });
-                item.Add("appendingSignLables", appendingSignLables);
-                item.Add("attachments", new object());
+                item.Add("appendingSignLabels", appendingSignLables);
+                // item.Add("attachments", new object());
                 item.Add("content", docContent);
                 mainContract = item;
                 result.Add(item);
@@ -147,7 +147,7 @@ public class ContactCreator : BackgroundService
             }
         }
         if (mainContract is null) throw new Exception("System Error: Not found the main contract.");
-        mainContract["attachments"] = attachments;
+        // mainContract["attachments"] = attachments;
         return result;
     }
 

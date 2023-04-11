@@ -25,6 +25,13 @@ public class TaskService
         return task;
     }
 
+    public void UpdateTaskContractId(int taskId, string contractId)
+    {
+        var task = _db.Set<ElectronicSignatureTask>().Single(i => i.Id == taskId);
+        task.BestSignContractId = contractId;
+        _db.SaveChanges();
+    }
+
     public void LogInfo(int taskId, string info)
     {
         var task = _db.Set<ElectronicSignatureTask>().AsNoTracking().Single(i => i.Id == taskId);

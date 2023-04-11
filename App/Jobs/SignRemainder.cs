@@ -34,7 +34,7 @@ public class SignRemainder : BackgroundService
             }
             finally
             {
-                await Task.Delay(TimeSpan.FromMinutes(10));
+                await Task.Delay(TimeSpan.FromDays(1));
             }
         }
     }
