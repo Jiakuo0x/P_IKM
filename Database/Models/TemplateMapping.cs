@@ -7,7 +7,22 @@ public class TemplateMapping : EntityBase
 {
     public string DocuSignTemplateId { get; set; } = string.Empty;
     public string BestSignTemplateId { get; set; } = string.Empty;
+
+    public string BestSignConfigurationString { get; set; } = string.Empty;
     public string ParameterMappingsString { get; set; } = string.Empty;
+
+    [NotMapped]
+    public BestSignTemplateConfiguration  BestSignConfiguration
+    {
+        get
+        {
+            return JsonConvert.DeserializeObject<BestSignTemplateConfiguration>(BestSignConfigurationString) ?? new();
+        }
+        set
+        {
+            BestSignConfigurationString = JsonConvert.SerializeObject(value);
+        }
+    }
 
     [NotMapped]
     public List<ParameterMapping> ParameterMappings
@@ -28,4 +43,20 @@ public class ParameterMapping
     public DocuSignDataType DocuSignDataType { get; set; }
     public string DocuSignDataName { get; set; } = string.Empty;
     public string BestSignDataName { get; set; } = string.Empty;
+}
+
+public class BestSignTemplateConfiguration
+{
+    public string EnterpriseName { get; set; } = string.Empty;
+    public string BusinessLine { get; set; } = string.Empty;
+
+    public string DocumentId { get; set; } = string.Empty;
+
+    public string RoleAId { get; set; } = string.Empty;
+    public string RoleAName { get; set; } = string.Empty;
+    public string RoleAType { get; set; } = string.Empty;
+
+    public string? RoleBId { get; set; }
+    public string? RoleBName { get; set; }
+    public string? RoleBType { get; set; }
 }
