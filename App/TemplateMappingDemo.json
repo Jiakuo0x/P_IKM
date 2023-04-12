@@ -1,6 +1,17 @@
 {
-  "docuSignTemplateId": "Electronic Signature",
-  "bestSignTemplateId": "3252850795062190082",
+  "docuSignTemplateId": "bilateral",
+  "bestSignTemplateId": "3291960854778371072",
+  "bestSignConfiguration": {
+    "enterpriseName": "宜家贸易服务（中国）有限公司",
+    "businessLine": "Operation",
+    "documentId": "3291961092528299015",
+    "roleAId": "3291961364587633673",
+    "roleAName": "员工",
+    "roleAType": "SEAL",
+    "roleBId": "3291961364587633673",
+    "roleBName": "员工",
+    "roleBType": "SEAL"
+  },
   "parameterMappings": [
     {
       "DocuSignDataType": 1,

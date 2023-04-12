@@ -43,6 +43,18 @@ public class MappingController : ControllerBase
                 DocuSignDataName = i.DocuSignDataName,
                 BestSignDataName = i.BestSignDataName,
             }).ToList(),
+            BestSignConfiguration = new BestSignTemplateConfiguration
+            {
+                EnterpriseName = dto.BestSignConfiguration.EnterpriseName,
+                BusinessLine = dto.BestSignConfiguration.BusinessLine,
+                DocumentId = dto.BestSignConfiguration.DocumentId,
+                RoleAId = dto.BestSignConfiguration.RoleAId,
+                RoleAName = dto.BestSignConfiguration.RoleAName,
+                RoleAType = dto.BestSignConfiguration.RoleAType,
+                RoleBId = dto.BestSignConfiguration.RoleBId,
+                RoleBName = dto.BestSignConfiguration.RoleBName,
+                RoleBType = dto.BestSignConfiguration.RoleBType,
+            },
         };
         _dbContext.Set<TemplateMapping>().Add(templateMapping);
         _dbContext.SaveChanges();
@@ -53,16 +65,33 @@ public class MappingController : ControllerBase
     public IResult ResetMapping([FromBody] TemplateMappingDto dto)
     {
         var templateMapping = _dbContext.Set<TemplateMapping>().SingleOrDefault(i => i.DocuSignTemplateId == dto.DocuSignTemplateId);
+
         if (templateMapping == null)
             return Results.BadRequest("Not found the template of the envelope.");
+
         if (templateMapping.BestSignTemplateId != dto.BestSignTemplateId)
             templateMapping.BestSignTemplateId = dto.BestSignTemplateId;
+
         templateMapping.ParameterMappings = dto.ParameterMappings.Select(i => new ParameterMapping
         {
             DocuSignDataType = i.DocuSignDataType,
             DocuSignDataName = i.DocuSignDataName,
             BestSignDataName = i.BestSignDataName,
         }).ToList();
+
+        templateMapping.BestSignConfiguration = new BestSignTemplateConfiguration
+        {
+            EnterpriseName = dto.BestSignConfiguration.EnterpriseName,
+            BusinessLine = dto.BestSignConfiguration.BusinessLine,
+            DocumentId = dto.BestSignConfiguration.DocumentId,
+            RoleAId = dto.BestSignConfiguration.RoleAId,
+            RoleAName = dto.BestSignConfiguration.RoleAName,
+            RoleAType = dto.BestSignConfiguration.RoleAType,
+            RoleBId = dto.BestSignConfiguration.RoleBId,
+            RoleBName = dto.BestSignConfiguration.RoleBName,
+            RoleBType = dto.BestSignConfiguration.RoleBType,
+        };
+        
         _dbContext.SaveChanges();
         return Results.Ok();
     }

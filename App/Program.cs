@@ -6,7 +6,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<DbContext, Database.ElectronicSignatureContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("App")));
 
 builder.Services.AddOptions<Lib.DocuSign.Configuration>()
     .Bind(builder.Configuration.GetSection("DocuSign"));

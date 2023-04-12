@@ -81,9 +81,9 @@ public class ContactCreator : BackgroundService
 
     protected async Task<CreateContractSuccessModel> CreateContract(CreateContractModel createContractModel)
     {
-        var sender = CreateContractSender();
-        var roles = CreateContractRoles();
-        var documents = await CreateContractDocuments(createContractModel.Envelope.EnvelopeId, createContractModel.Envelope.EnvelopeDocuments);
+        var sender = CreateContractSender(createContractModel);
+        var roles = CreateContractRoles(createContractModel);
+        var documents = await CreateContractDocuments(createContractModel);
 
         var apiResponse = await _bestSign.Post<CreateContractSuccessModel>($"/api/templates/send-contracts-sync-v2", new
         {
@@ -98,25 +98,25 @@ public class ContactCreator : BackgroundService
     }
 
     # region CreateContractDocuments
-    protected async Task<object> CreateContractDocuments(string envelopeId, List<EnvelopeDocument> documents)
+    protected async Task<object> CreateContractDocuments(CreateContractModel createContractModel)
     {
         List<Object> result = new();
 
         Dictionary<string, object>? mainContract = null;
         List<Object> attachments = new();
-        foreach (var document in documents)
+        foreach (var document in createContractModel.Envelope.EnvelopeDocuments)
         {
             if (document.Name == "Summary") continue;
 
-            var docFile = await _docuSign.DownloadDocument(envelopeId, document.DocumentId);
+            var docFile = await _docuSign.DownloadDocument(createContractModel.Envelope.EnvelopeId, document.DocumentId);
             var docContent = _documentService.DecryptDocument(docFile);
 
-            var appendingSignLables = await AppendingSignLables(envelopeId, document.DocumentId);
+            var appendingSignLables = await AppendingSignLables(createContractModel, document.DocumentId);
 
             var item = new Dictionary<string, object>();
             if (mainContract is null && appendingSignLables is not null)
             {
-                item.Add("documentId", "3291961092528299015");
+                item.Add("documentId", createContractModel.TemplateMapping!.BestSignConfiguration.DocumentId);
                 item.Add("fileName", $"{document.Name}.pdf");
                 item.Add("contractConfig", new
                 {
@@ -151,11 +151,11 @@ public class ContactCreator : BackgroundService
         return result;
     }
 
-    protected async Task<List<Object>?> AppendingSignLables(string envelopeId, string documentId)
+    protected async Task<List<Object>?> AppendingSignLables(CreateContractModel createContractModel, string documentId)
     {
         List<Object> result = new();
 
-        var docTabs = await _docuSign.GetDocumentTabs(envelopeId, documentId);
+        var docTabs = await _docuSign.GetDocumentTabs(createContractModel.Envelope.EnvelopeId, documentId);
         var aStamp = docTabs.SignHereTabs?.SingleOrDefault(i => i.TabLabel == "A Stamp Here");
         if (aStamp != null)
         {
@@ -164,8 +164,8 @@ public class ContactCreator : BackgroundService
                 x = GetXPosition(aStamp.XPosition),
                 y = GetYPosition(aStamp.YPosition),
                 pageNumber = int.Parse(aStamp.PageNumber),
-                roleName = "员工",
-                type = "SEAL",
+                roleName = createContractModel.TemplateMapping!.BestSignConfiguration.RoleAName,
+                type = createContractModel.TemplateMapping!.BestSignConfiguration.RoleAType,
             });
         }
 
@@ -177,8 +177,8 @@ public class ContactCreator : BackgroundService
                 x = GetXPosition(bStamp.XPosition),
                 y = GetYPosition(bStamp.YPosition),
                 pageNumber = int.Parse(bStamp.PageNumber),
-                roleName = "员工",
-                type = "SEAL",
+                roleName = createContractModel.TemplateMapping!.BestSignConfiguration.RoleBName,
+                type = createContractModel.TemplateMapping!.BestSignConfiguration.RoleBType,
             });
         }
         if (aStamp == null && bStamp == null)
@@ -198,44 +198,46 @@ public class ContactCreator : BackgroundService
     }
     #endregion
 
-    protected object CreateContractSender()
+    protected object CreateContractSender(CreateContractModel createContractModel)
     {
         var result = new
         {
-            account = "13511031927",
-            enterpriseName = "宜家贸易服务（中国）有限公司",
-            bizName = "Operation",
+            account = createContractModel.Envelope.Sender.Email,
+            enterpriseName = createContractModel.TemplateMapping!.BestSignConfiguration.EnterpriseName,
+            bizName = createContractModel.TemplateMapping!.BestSignConfiguration.BusinessLine,
         };
 
         return result;
     }
 
-    protected object CreateContractRoles()
+    protected object CreateContractRoles(CreateContractModel createContractModel)
     {
         List<Object> result = new();
         result.Add(new
         {
-            roleId = "3291961364587633673",
+            roleId = createContractModel.TemplateMapping!.BestSignConfiguration.RoleAId,
             userInfo = new
             {
                 userAccount = "13511031927",
                 enterpriseName = "宜家贸易服务（中国）有限公司",
             },
         });
-        // result.Add(new
-        // {
-        //     roleId = "3277656591180727299",
-        //     userInfo = new
-        //     {
-        //         userAccount = "13511031927",
-        //         enterpriseName = "宜家贸易（中国）有限公司",
-        //     },
-        // });
+
+        if (createContractModel.TemplateMapping.BestSignConfiguration.RoleBId != null)
+        {
+            result.Add(new
+            {
+                roleId = createContractModel.TemplateMapping.BestSignConfiguration.RoleBId,
+                userInfo = new
+                {
+                    userAccount = "13511031927",
+                    enterpriseName = "宜家贸易（中国）有限公司",
+                },
+            });
+        }
 
         return result;
     }
-
-
 }
 
 public class CreateContractModel
