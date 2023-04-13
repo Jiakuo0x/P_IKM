@@ -58,7 +58,7 @@ public class ContactCreator : BackgroundService
                 MatchTemplateMapping(createContractModel);
                 var contract = await CreateContract(createContractModel);
 
-                task.BestSignContractId = contract.ContractId;
+                _taskService.UpdateTaskContractId(task.Id, contract.ContractId);
                 _taskService.ChangeStep(task.Id, TaskStep.ContractCreated);
             }
             catch (Exception ex)
@@ -123,7 +123,6 @@ public class ContactCreator : BackgroundService
                     contractTitle = $"{document.Name}.pdf",
                 });
                 item.Add("appendingSignLabels", appendingSignLables);
-                // item.Add("attachments", new object());
                 item.Add("content", docContent);
                 mainContract = item;
                 result.Add(item);
@@ -213,6 +212,7 @@ public class ContactCreator : BackgroundService
     protected object CreateContractRoles(CreateContractModel createContractModel)
     {
         List<Object> result = new();
+        var envelope = createContractModel.Envelope;
         result.Add(new
         {
             roleId = createContractModel.TemplateMapping!.BestSignConfiguration.RoleAId,

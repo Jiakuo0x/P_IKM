@@ -49,7 +49,7 @@ public class BestsignController : ControllerBase
             else
             {
                 taskService.LogInfo(task.Id, dto.ResponseData!);
-                docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Signed").GetAwaiter().GetResult();
+                docuSignService.AddComment(task.DocuSignEnvelopeId, $"BestSign contract signed by {result.UserAccount}").GetAwaiter().GetResult();
             }
         }
         else if (dto.Type == "CONTRACT_COMPLETE")
@@ -64,7 +64,7 @@ public class BestsignController : ControllerBase
                 }
                 else
                 {
-                    taskService.ChangeStep(task.Id, TaskStep.Completed);
+                    taskService.ChangeStep(task.Id, TaskStep.ContractCompleted);
                     docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Completed").GetAwaiter().GetResult();
                 }
             }
@@ -79,7 +79,8 @@ public class BestsignController : ControllerBase
             }
             else
             {
-                taskService.ChangeStep(task.Id, TaskStep.ContractOverdue);
+                taskService.LogInfo(task.Id, "BestSign Contract Overdue");
+                taskService.ChangeStep(task.Id, TaskStep.Failed);
                 docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Overdue").GetAwaiter().GetResult();
             }
         }
