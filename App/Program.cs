@@ -34,5 +34,6 @@ builder.Services.AddHostedService<ContactCreator>();
 var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
+app.UseMiddleware<Middlewares.RequestLogMiddleware>();
 app.MapControllers();
 app.Run();
