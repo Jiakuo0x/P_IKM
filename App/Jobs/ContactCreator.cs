@@ -148,7 +148,7 @@ public class ContactCreator : BackgroundService
             }
         }
         if (mainContract is null) throw new Exception("System Error: Not found the main contract.");
-        // mainContract["attachments"] = attachments;
+        mainContract.Add("attachments", attachments);
         return result;
     }
 
@@ -224,10 +224,10 @@ public class ContactCreator : BackgroundService
             {
                 userAccount = stampKeeper.Value,
                 enterpriseName = signingCompany.ListSelectedValue,
-                roleName = "RoleA",
-                receiverType = "SIGNER",
-                userType = "ENTERPRISE",
             },
+            roleName = "RoleA",
+            receiverType = "SIGNER",
+            userType = "ENTERPRISE",
         });
 
         var supplierContracter = formData.FirstOrDefault(i => i.Name == "Supplier Contacter");
@@ -240,10 +240,10 @@ public class ContactCreator : BackgroundService
                 {
                     userAccount = supplierContract!.Value,
                     enterpriseName = supplierContracter.Value,
-                    roleName = "RoleB",
-                    receiverType = "SIGNER",
-                    userType = "ENTERPRISE",
                 },
+                roleName = "RoleB",
+                receiverType = "SIGNER",
+                userType = "ENTERPRISE",
             });
         }
 

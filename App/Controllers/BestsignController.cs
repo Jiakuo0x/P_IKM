@@ -24,12 +24,12 @@ public class BestsignController : ControllerBase
 
         if (dto.Type == "CONTRACT_SEND_RESULT")
         {
-            ContractSendResultDto result = JsonConvert.DeserializeObject<ContractSendResultDto>(dto.ResponseData!)!;
+            ContractSendResultDto result = JsonConvert.DeserializeObject<ContractSendResultDto>(dto.ResponseData!.ToString()!)!;
             var task = taskService.GetTaskByBestSignContractId(result.ContractId);
             if (task is not null)
             {
                 taskService.LogInfo(task.Id, "BestSign Contract Sent");
-                docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Sent").GetAwaiter().GetResult();
+                // docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Sent").GetAwaiter().GetResult();
             }
         }
         else if (dto.Type == "SIGNLE_CONTRACT_SEND_RESULT")
@@ -37,17 +37,17 @@ public class BestsignController : ControllerBase
         }
         else if (dto.Type == "OPERATION_COMPLETE")
         {
-            OperationCompleteDto result = JsonConvert.DeserializeObject<OperationCompleteDto>(dto.ResponseData!)!;
+            OperationCompleteDto result = JsonConvert.DeserializeObject<OperationCompleteDto>(dto.ResponseData!.ToString()!)!;
             var task = taskService.GetTaskByBestSignContractId(result.ContractId);
             if (task is not null)
             {
                 taskService.LogInfo(task.Id, $"BestSign contract signed by {result.UserAccount}");
-                docuSignService.AddComment(task.DocuSignEnvelopeId, $"BestSign contract signed by {result.UserAccount}").GetAwaiter().GetResult();
+                // docuSignService.AddComment(task.DocuSignEnvelopeId, $"BestSign contract signed by {result.UserAccount}").GetAwaiter().GetResult();
             }
         }
         else if (dto.Type == "CONTRACT_COMPLETE")
         {
-            ContractCompleteDto result = JsonConvert.DeserializeObject<ContractCompleteDto>(dto.ResponseData!)!;
+            ContractCompleteDto result = JsonConvert.DeserializeObject<ContractCompleteDto>(dto.ResponseData!.ToString()!)!;
             foreach (var contractId in result.ContractIds)
             {
                 var task = taskService.GetTaskByBestSignContractId(contractId);
@@ -55,19 +55,19 @@ public class BestsignController : ControllerBase
                 {
                     taskService.LogInfo(task.Id, "BestSign Contract Completed");
                     taskService.ChangeStep(task.Id, TaskStep.ContractCompleted);
-                    docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Completed").GetAwaiter().GetResult();
+                    // docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Completed").GetAwaiter().GetResult();
                 }
             }
         }
         else if (dto.Type == "CONTRACT_OVERDUE")
         {
-            ContractOverdueDto result = JsonConvert.DeserializeObject<ContractOverdueDto>(dto.ResponseData!)!;
+            ContractOverdueDto result = JsonConvert.DeserializeObject<ContractOverdueDto>(dto.ResponseData!.ToString()!)!;
             var task = taskService.GetTaskByBestSignContractId(result.ContractId);
             if (task is not null)
             {
                 taskService.LogInfo(task.Id, "BestSign Contract Overdue");
                 taskService.ChangeStep(task.Id, TaskStep.Failed);
-                docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Overdue").GetAwaiter().GetResult();
+                // docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Overdue").GetAwaiter().GetResult();
             }
         }
 

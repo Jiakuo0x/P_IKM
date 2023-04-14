@@ -12,7 +12,7 @@ public class DocuSignService
     public DocuSignService(
         IOptions<Configuration> options,
         ClientManager clientManager)
-    { 
+    {
         _options = options;
         _clientManager = clientManager;
     }
@@ -44,8 +44,10 @@ public class DocuSignService
     {
         var client = _clientManager.GetClient();
         EnvelopesApi envelopesApi = new(client);
+
         List<CommentPublish> publishers = new List<CommentPublish>();
-        publishers.Add(new CommentPublish(Text:comment));
+        publishers.Add(new CommentPublish(Text: comment, Id: Guid.NewGuid().ToString(), ThreadId: Guid.NewGuid().ToString()));
+
         CommentsPublish commentsPublish = new CommentsPublish(publishers);
         await envelopesApi.CreateEnvelopeCommentsAsync(_options.Value.AccountId, envelopeId, commentsPublish);
     }
