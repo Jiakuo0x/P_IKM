@@ -21,6 +21,7 @@ public class RequestLogMiddleware
             QueryString = request.QueryString.ToString(),
             Body = await ReadRequestBodyAsync(request),
         };
+        _logger.LogInformation($"Request: {requestLog.Method} {requestLog.Path}{requestLog.QueryString}");
         _logger.LogInformation($"Request body: {requestLog.Body}");
         await _next(context);
     }
