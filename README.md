@@ -4,4 +4,5 @@ Connect DocuSign and BestSign by transferring operation contract signing and oth
 # Start-up
 ## Debug
 cd /home/docusign/app/DocuSign-BesSign-Middleware/App
+dotnet run --urls http://0.0.0.0
 dotnet run --urls https://0.0.0.0

@@ -17,7 +17,7 @@ public class BestsignController : ControllerBase
 
     [HttpPost]
     [Route("listen")]
-    public object Listen([FromServices] TaskService taskService, DocuSignService docuSignService,
+    public object Listen([FromServices] TaskService taskService, [FromServices] DocuSignService docuSignService,
         [FromBody] BestSignCallbackDto dto)
     {
         _logger.LogInformation($"[BestSign] [Callback] {JsonConvert.SerializeObject(dto)}");
