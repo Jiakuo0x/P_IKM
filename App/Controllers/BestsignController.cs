@@ -28,7 +28,7 @@ public class BestsignController : ControllerBase
             var task = taskService.GetTaskByBestSignContractId(result.ContractId);
             if (task is not null)
             {
-                taskService.LogInfo(task.Id, dto.ResponseData!);
+                taskService.LogInfo(task.Id, "BestSign Contract Sent");
                 docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Sent").GetAwaiter().GetResult();
             }
         }
@@ -41,7 +41,7 @@ public class BestsignController : ControllerBase
             var task = taskService.GetTaskByBestSignContractId(result.ContractId);
             if (task is not null)
             {
-                taskService.LogInfo(task.Id, dto.ResponseData!);
+                taskService.LogInfo(task.Id, $"BestSign contract signed by {result.UserAccount}");
                 docuSignService.AddComment(task.DocuSignEnvelopeId, $"BestSign contract signed by {result.UserAccount}").GetAwaiter().GetResult();
             }
         }
@@ -53,6 +53,7 @@ public class BestsignController : ControllerBase
                 var task = taskService.GetTaskByBestSignContractId(contractId);
                 if (task is not null)
                 {
+                    taskService.LogInfo(task.Id, "BestSign Contract Completed");
                     taskService.ChangeStep(task.Id, TaskStep.ContractCompleted);
                     docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Completed").GetAwaiter().GetResult();
                 }
@@ -70,7 +71,6 @@ public class BestsignController : ControllerBase
             }
         }
 
-        _logger.LogInformation($"[BestSign] [Unknown Type] {JsonConvert.SerializeObject(dto)}");
         return new
         {
             Code = "200",
