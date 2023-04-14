@@ -3,14 +3,15 @@ using Services;
 
 namespace Jobs;
 
-public class DocuSignConractUploader : BackgroundService
+public class DocuSignContractUploader : BackgroundService
 {
     private readonly ILogger<EmailSender> _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly EmailService _emailService;
     private readonly TaskService _taskService;
     private readonly DocuSignService _docuSignService;
-    public DocuSignConractUploader(
+    private readonly BestSignService _bestSignService;
+    public DocuSignContractUploader(
         ILogger<EmailSender> logger,
         IServiceScopeFactory serviceScopeFactory)
     {
@@ -20,6 +21,7 @@ public class DocuSignConractUploader : BackgroundService
         _emailService = serviceProvider.GetRequiredService<EmailService>();
         _taskService = serviceProvider.GetRequiredService<TaskService>();
         _docuSignService = serviceProvider.GetRequiredService<DocuSignService>();
+        _bestSignService = serviceProvider.GetRequiredService<BestSignService>();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -46,7 +48,16 @@ public class DocuSignConractUploader : BackgroundService
         var tasks = _taskService.GetTasksByStep(TaskStep.ContractCompleted);
         foreach (var task in tasks)
         {
-
+            var result = await _bestSignService.PostAsStream("/api/contracts/download-file", new
+            {
+                contractIds = new[] { task.BestSignContractId }
+            });
+            if (!File.Exists("src/res.zip")) 
+            {
+                var file = File.Create("src/res.zip");
+                file.Close();
+            }
+            File.WriteAllBytes("src/res.zip", result);
         }
     }
 }
