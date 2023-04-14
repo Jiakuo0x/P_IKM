@@ -48,12 +48,6 @@ public class MappingController : ControllerBase
                 EnterpriseName = dto.BestSignConfiguration.EnterpriseName,
                 BusinessLine = dto.BestSignConfiguration.BusinessLine,
                 DocumentId = dto.BestSignConfiguration.DocumentId,
-                RoleAId = dto.BestSignConfiguration.RoleAId,
-                RoleAName = dto.BestSignConfiguration.RoleAName,
-                RoleAType = dto.BestSignConfiguration.RoleAType,
-                RoleBId = dto.BestSignConfiguration.RoleBId,
-                RoleBName = dto.BestSignConfiguration.RoleBName,
-                RoleBType = dto.BestSignConfiguration.RoleBType,
             },
         };
         _dbContext.Set<TemplateMapping>().Add(templateMapping);
@@ -84,12 +78,6 @@ public class MappingController : ControllerBase
             EnterpriseName = dto.BestSignConfiguration.EnterpriseName,
             BusinessLine = dto.BestSignConfiguration.BusinessLine,
             DocumentId = dto.BestSignConfiguration.DocumentId,
-            RoleAId = dto.BestSignConfiguration.RoleAId,
-            RoleAName = dto.BestSignConfiguration.RoleAName,
-            RoleAType = dto.BestSignConfiguration.RoleAType,
-            RoleBId = dto.BestSignConfiguration.RoleBId,
-            RoleBName = dto.BestSignConfiguration.RoleBName,
-            RoleBType = dto.BestSignConfiguration.RoleBType,
         };
         
         _dbContext.SaveChanges();

@@ -55,7 +55,9 @@ public class ContactCreator : BackgroundService
                 CreateContractModel createContractModel = new CreateContractModel { Task = task };
 
                 createContractModel.Envelope = await _docuSign.GetEnvelopeAsync(task.DocuSignEnvelopeId);
-                MatchTemplateMapping(createContractModel);
+                createContractModel.EnvelopeFormData = await _docuSign.GetEnvelopeFormDataAsync(task.DocuSignEnvelopeId);
+                createContractModel.TemplateMapping = MatchTemplateMapping(createContractModel);
+
                 var contract = await CreateContract(createContractModel);
 
                 _taskService.UpdateTaskContractId(task.Id, contract.ContractId);
@@ -68,7 +70,7 @@ public class ContactCreator : BackgroundService
         }
     }
 
-    protected void MatchTemplateMapping(CreateContractModel createContractModel)
+    protected TemplateMapping MatchTemplateMapping(CreateContractModel createContractModel)
     {
         var envelopeType = createContractModel.Envelope
             .CustomFields.ListCustomFields.SingleOrDefault(i => i.Name == "eStamp Type");
@@ -76,7 +78,7 @@ public class ContactCreator : BackgroundService
 
         var templateMapping = _templateMappingService.GetMappingByDocuSignId(envelopeType.Value);
 
-        createContractModel.TemplateMapping = templateMapping;
+        return templateMapping;
     }
 
     protected async Task<CreateContractSuccessModel> CreateContract(CreateContractModel createContractModel)
@@ -163,8 +165,8 @@ public class ContactCreator : BackgroundService
                 x = GetXPosition(aStamp.XPosition),
                 y = GetYPosition(aStamp.YPosition),
                 pageNumber = int.Parse(aStamp.PageNumber),
-                roleName = createContractModel.TemplateMapping!.BestSignConfiguration.RoleAName,
-                type = createContractModel.TemplateMapping!.BestSignConfiguration.RoleAType,
+                roleName = "RoleA",
+                type = "SEAL",
             });
         }
 
@@ -176,8 +178,8 @@ public class ContactCreator : BackgroundService
                 x = GetXPosition(bStamp.XPosition),
                 y = GetYPosition(bStamp.YPosition),
                 pageNumber = int.Parse(bStamp.PageNumber),
-                roleName = createContractModel.TemplateMapping!.BestSignConfiguration.RoleBName,
-                type = createContractModel.TemplateMapping!.BestSignConfiguration.RoleBType,
+                roleName = "RoleB",
+                type = "SEAL",
             });
         }
         if (aStamp == null && bStamp == null)
@@ -212,26 +214,35 @@ public class ContactCreator : BackgroundService
     protected object CreateContractRoles(CreateContractModel createContractModel)
     {
         List<Object> result = new();
-        var envelope = createContractModel.Envelope;
+        var formData = createContractModel.EnvelopeFormData.FormData;
+
+        var stampKeeper = formData.First(i => i.Name == "StampKeeper");
+        var signingCompany = formData.First(i => i.Name == "Signing Company");
         result.Add(new
         {
-            roleId = createContractModel.TemplateMapping!.BestSignConfiguration.RoleAId,
             userInfo = new
             {
-                userAccount = "13511031927",
-                enterpriseName = "宜家贸易服务（中国）有限公司",
+                userAccount = stampKeeper.Value,
+                enterpriseName = signingCompany.ListSelectedValue,
+                roleName = "RoleA",
+                receiverType = "SIGNER",
+                userType = "ENTERPRISE",
             },
         });
 
-        if (createContractModel.TemplateMapping.BestSignConfiguration.RoleBId != null)
+        var supplierContracter = formData.FirstOrDefault(i => i.Name == "Supplier Contacter");
+        var supplierContract = formData.FirstOrDefault(i => i.Name == "Supplier Contact");
+        if (supplierContracter is not null)
         {
             result.Add(new
             {
-                roleId = createContractModel.TemplateMapping.BestSignConfiguration.RoleBId,
                 userInfo = new
                 {
-                    userAccount = "13511031927",
-                    enterpriseName = "宜家贸易（中国）有限公司",
+                    userAccount = supplierContract!.Value,
+                    enterpriseName = supplierContracter.Value,
+                    roleName = "RoleB",
+                    receiverType = "SIGNER",
+                    userType = "ENTERPRISE",
                 },
             });
         }
@@ -245,6 +256,7 @@ public class CreateContractModel
     public ElectronicSignatureTask Task { get; set; } = null!;
     public TemplateMapping? TemplateMapping { get; set; }
     public Envelope Envelope { get; set; } = null!;
+    public EnvelopeFormData EnvelopeFormData { get; set; } = null!;
 }
 
 public class CreateContractSuccessModel

@@ -51,12 +51,4 @@ public class BestSignTemplateConfiguration
     public string BusinessLine { get; set; } = string.Empty;
 
     public string DocumentId { get; set; } = string.Empty;
-
-    public string RoleAId { get; set; } = string.Empty;
-    public string RoleAName { get; set; } = string.Empty;
-    public string RoleAType { get; set; } = string.Empty;
-
-    public string? RoleBId { get; set; }
-    public string? RoleBName { get; set; }
-    public string? RoleBType { get; set; }
 }

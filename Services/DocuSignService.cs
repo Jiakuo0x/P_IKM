@@ -50,6 +50,14 @@ public class DocuSignService
         await envelopesApi.CreateEnvelopeCommentsAsync(_options.Value.AccountId, envelopeId, commentsPublish);
     }
 
+    public async Task<EnvelopeFormData> GetEnvelopeFormDataAsync(string envelopeId)
+    {
+        var client = _clientManager.GetClient();
+        EnvelopesApi envelopesApi = new(client);
+        var result = await envelopesApi.GetFormDataAsync(_options.Value.AccountId, envelopeId);
+        return result;
+    }
+
     public async Task<Tabs> GetDocumentTabs(string envelopeId, string documentId)
     {
         var client = _clientManager.GetClient();
