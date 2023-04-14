@@ -20,15 +20,13 @@ public class BestsignController : ControllerBase
     public object Listen([FromServices] TaskService taskService, DocuSignService docuSignService,
         [FromBody] BestSignCallbackDto dto)
     {
+        _logger.LogInformation($"[BestSign] [Callback] {JsonConvert.SerializeObject(dto)}");
+
         if (dto.Type == "CONTRACT_SEND_RESULT")
         {
             ContractSendResultDto result = JsonConvert.DeserializeObject<ContractSendResultDto>(dto.ResponseData!)!;
             var task = taskService.GetTaskByBestSignContractId(result.ContractId);
-            if (task is null)
-            {
-                _logger.LogInformation($"[BestSign] [Task Not Found] {JsonConvert.SerializeObject(dto)}");
-            }
-            else
+            if (task is not null)
             {
                 taskService.LogInfo(task.Id, dto.ResponseData!);
                 docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Sent").GetAwaiter().GetResult();
@@ -36,17 +34,12 @@ public class BestsignController : ControllerBase
         }
         else if (dto.Type == "SIGNLE_CONTRACT_SEND_RESULT")
         {
-            _logger.LogInformation($"SIGNLE_CONTRACT_SEND_RESULT: {dto.ResponseData}");
         }
         else if (dto.Type == "OPERATION_COMPLETE")
         {
             OperationCompleteDto result = JsonConvert.DeserializeObject<OperationCompleteDto>(dto.ResponseData!)!;
             var task = taskService.GetTaskByBestSignContractId(result.ContractId);
-            if (task is null)
-            {
-                _logger.LogInformation($"[BestSign] [Task Not Found] {JsonConvert.SerializeObject(dto)}");
-            }
-            else
+            if (task is not null)
             {
                 taskService.LogInfo(task.Id, dto.ResponseData!);
                 docuSignService.AddComment(task.DocuSignEnvelopeId, $"BestSign contract signed by {result.UserAccount}").GetAwaiter().GetResult();
@@ -58,11 +51,7 @@ public class BestsignController : ControllerBase
             foreach (var contractId in result.ContractIds)
             {
                 var task = taskService.GetTaskByBestSignContractId(contractId);
-                if (task is null)
-                {
-                    _logger.LogInformation($"[BestSign] [Task Not Found] {JsonConvert.SerializeObject(dto)}");
-                }
-                else
+                if (task is not null)
                 {
                     taskService.ChangeStep(task.Id, TaskStep.ContractCompleted);
                     docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Completed").GetAwaiter().GetResult();
@@ -73,11 +62,7 @@ public class BestsignController : ControllerBase
         {
             ContractOverdueDto result = JsonConvert.DeserializeObject<ContractOverdueDto>(dto.ResponseData!)!;
             var task = taskService.GetTaskByBestSignContractId(result.ContractId);
-            if (task is null)
-            {
-                _logger.LogInformation($"[BestSign] [Task Not Found] {JsonConvert.SerializeObject(dto)}");
-            }
-            else
+            if (task is not null)
             {
                 taskService.LogInfo(task.Id, "BestSign Contract Overdue");
                 taskService.ChangeStep(task.Id, TaskStep.Failed);
