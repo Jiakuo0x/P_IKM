@@ -21,9 +21,18 @@ public class RequestLogMiddleware
             QueryString = request.QueryString.ToString(),
             Body = await ReadRequestBodyAsync(request),
         };
+        
         _logger.LogInformation($"Request: {requestLog.Method} {requestLog.Path}{requestLog.QueryString}");
         _logger.LogInformation($"Request body: {requestLog.Body}");
-        await _next(context);
+
+        try
+        {
+            await _next(context);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in RequestLogMiddleware");
+        }
     }
 
     private async Task<string> ReadRequestBodyAsync(HttpRequest request)
