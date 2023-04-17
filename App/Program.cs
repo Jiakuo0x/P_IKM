@@ -26,10 +26,10 @@ builder.Services.AddOptions<Lib.Email.Configuration>()
     .Bind(builder.Configuration.GetSection("EmailSender"));
 builder.Services.AddScoped<EmailService>();
 
-// builder.Services.AddHostedService<DocuSignReader>();
-// builder.Services.AddHostedService<ContactCreator>();
-// builder.Services.AddHostedService<ContactCanceller>();
-// builder.Services.AddHostedService<EmailSender>();
+builder.Services.AddHostedService<DocuSignReader>();
+builder.Services.AddHostedService<ContactCreator>();
+builder.Services.AddHostedService<ContactCanceller>();
+builder.Services.AddHostedService<EmailSender>();
 builder.Services.AddHostedService<DocuSignContractUploader>();
 
 var app = builder.Build();
