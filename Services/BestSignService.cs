@@ -71,15 +71,10 @@ public class BestSignService
 
         string requestMessage = JsonConvert.SerializeObject(data);
 
-        //test
-        if (!File.Exists("src/requestMessage.json")) File.Create("requestMessage.json");
-        File.WriteAllText("src/requestMessage.json", requestMessage);
-
         HttpContent content = new StringContent(requestMessage, Encoding.UTF8, "application/json");
         var resposneMessage = await client.PostAsync(_options.Value.ServerHost + url, content);
         var apiResponse = await resposneMessage.Content.ReadFromJsonAsync<ApiResponse<T>>();
         
-
         if (apiResponse is null)
             throw new Exception($"[BestSign Error] [Return Value Error] URL:{client.BaseAddress}");
 
