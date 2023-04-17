@@ -44,15 +44,22 @@ public class SignRemainder : BackgroundService
         var tasks = _taskService.GetTasksByStep(TaskStep.ContractCancelled);
         foreach (var task in tasks)
         {
-            if (task.BestSignContractId == null)
-                continue;
-            if (task.LastUpdated.AddDays(15) < DateTime.Now)
-                continue;
-
-            await _bestSign.Post<object>("/api/contracts/remind", new
+            try
             {
-                contractId = task.BestSignContractId,
-            });
+                if (task.BestSignContractId == null)
+                    continue;
+                if (task.LastUpdated.AddDays(15) < DateTime.Now)
+                    continue;
+
+                await _bestSign.Post<object>("/api/contracts/remind", new
+                {
+                    contractId = task.BestSignContractId,
+                });
+            }
+            catch(Exception ex)
+            {
+                _taskService.LogError(task.Id, ex.Message);
+            }
         }
     }
 }
