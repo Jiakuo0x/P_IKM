@@ -74,4 +74,26 @@ public class DocuSignService
         var result = await envelopesApi.GetDocumentAsync(_options.Value.AccountId, envelopeId, documentId);
         return result;
     }
+
+    public async Task AppendDocuments(string envelopeId, List<Document> documents)
+    {
+        var client = _clientManager.GetClient();
+        EnvelopesApi envelopesApi = new(client);
+
+        await envelopesApi.UpdateDocumentsAsync(_options.Value.AccountId, envelopeId, new EnvelopeDefinition
+        {
+            Documents = documents,
+        });
+    }
+
+    public async Task RemoveListener(string envelopeId)
+    {
+        var client = _clientManager.GetClient();
+        EnvelopesApi envelopesApi = new(client);
+        var recipients = await envelopesApi.ListRecipientsAsync(_options.Value.AccountId, envelopeId);
+        var listener = recipients.Signers.SingleOrDefault(i => i.Email == _options.Value.ListenEmail && i.RoutingOrder == recipients.CurrentRoutingOrder);
+        if (listener is null) return;
+
+        await envelopesApi.DeleteRecipientAsync(_options.Value.AccountId, envelopeId, listener.RecipientId);
+    }
 }

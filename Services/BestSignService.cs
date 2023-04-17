@@ -84,7 +84,7 @@ public class BestSignService
         return apiResponse.Data;
     }
 
-    public async Task<byte[]> PostAsStream(string url, object data)
+    public async Task<Stream> PostAsStream(string url, object data)
     {
         HttpClient client = new HttpClient();
         await GenerateSignature(client, url, data);
@@ -93,7 +93,7 @@ public class BestSignService
 
         HttpContent content = new StringContent(requestMessage, Encoding.UTF8, "application/json");
         var resposneMessage = await client.PostAsync(_options.Value.ServerHost + url, content);
-        var apiResponse = await resposneMessage.Content.ReadAsByteArrayAsync();
+        var apiResponse = await resposneMessage.Content.ReadAsStreamAsync();
 
         return apiResponse;
     }

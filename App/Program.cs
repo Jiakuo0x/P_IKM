@@ -31,6 +31,7 @@ builder.Services.AddHostedService<ContactCreator>();
 builder.Services.AddHostedService<ContactCanceller>();
 builder.Services.AddHostedService<EmailSender>();
 builder.Services.AddHostedService<DocuSignContractUploader>();
+builder.Services.AddHostedService<SignRemainder>();
 
 var app = builder.Build();
 app.UseSwagger();
