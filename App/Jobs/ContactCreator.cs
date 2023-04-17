@@ -216,8 +216,11 @@ public class ContactCreator : BackgroundService
         List<Object> result = new();
         var formData = createContractModel.EnvelopeFormData.FormData;
 
-        var stampKeeper = formData.First(i => i.Name == "StampKeeper");
-        var signingCompany = formData.First(i => i.Name == "Signing Company");
+        var stampKeeper = formData.FirstOrDefault(i => i.Name == "StampKeeper");
+        var signingCompany = formData.FirstOrDefault(i => i.Name == "Signing Company");
+        if (stampKeeper is null) throw new Exception("Stamp Keeper is required field.");
+        if (signingCompany is null) throw new Exception("Signing Company is required field.");
+
         result.Add(new
         {
             userInfo = new
