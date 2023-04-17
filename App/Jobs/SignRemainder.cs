@@ -58,7 +58,7 @@ public class SignRemainder : BackgroundService
             }
             catch(Exception ex)
             {
-                _taskService.LogError(task.Id, ex.Message);
+                _taskService.LogInfo(task.Id, ex.Message);
             }
         }
     }
