@@ -98,7 +98,7 @@ public class DocuSignService
         var listener = recipients.Signers.SingleOrDefault(i => i.Email == _options.Value.ListenEmail && i.RoutingOrder == recipients.CurrentRoutingOrder);
         if (listener is null) return;
 
-        await envelopesApi.DeleteRecipientAsync(_options.Value.AccountId, envelopeId, listener.RecipientId);
+        var response = await envelopesApi.DeleteRecipientAsync(_options.Value.AccountId, envelopeId, listener.RecipientId);
     }
 
     public bool EnvelopeIsPending(Envelope envelope)
