@@ -40,16 +40,20 @@ public class DocuSignService
         return envelope;
     }
 
-    public async Task AddComment(string envelopeId, string comment)
+    public async Task UpdateComment(string envelopeId, string comment)
     {
         var client = _clientManager.GetClient();
         EnvelopesApi envelopesApi = new(client);
-
-        List<CommentPublish> publishers = new List<CommentPublish>();
-        publishers.Add(new CommentPublish(Text: comment, Id: Guid.NewGuid().ToString(), ThreadId: Guid.NewGuid().ToString()));
-
-        CommentsPublish commentsPublish = new CommentsPublish(publishers);
-        await envelopesApi.CreateEnvelopeCommentsAsync(_options.Value.AccountId, envelopeId, commentsPublish);
+        var envelope = await envelopesApi.GetEnvelopeAsync(_options.Value.AccountId, envelopeId, new EnvelopesApi.GetEnvelopeOptions
+        {
+            include = "custom_fields",
+        });
+        var customField = envelope.CustomFields.TextCustomFields.FirstOrDefault(i => i.Name == "Latest Status");
+        if (customField is not null)
+        {
+            customField.Value = $"{comment}";
+        }
+        await envelopesApi.UpdateCustomFieldsAsync(_options.Value.AccountId, envelopeId, envelope.CustomFields);
     }
 
     public async Task<EnvelopeFormData> GetEnvelopeFormDataAsync(string envelopeId)

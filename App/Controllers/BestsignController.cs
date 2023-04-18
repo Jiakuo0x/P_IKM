@@ -28,8 +28,8 @@ public class BestsignController : ControllerBase
             var task = taskService.GetTaskByBestSignContractId(result.ContractId);
             if (task is not null)
             {
-                taskService.LogInfo(task.Id, "BestSign Contract Sent");
-                // docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Sent").GetAwaiter().GetResult();
+                taskService.LogInfo(task.Id, "Contract creation completed.");
+                docuSignService.UpdateComment(task.DocuSignEnvelopeId, "Contract creation completed.").GetAwaiter().GetResult();
             }
         }
         else if (dto.Type == "SIGNLE_CONTRACT_SEND_RESULT")
@@ -41,8 +41,8 @@ public class BestsignController : ControllerBase
             var task = taskService.GetTaskByBestSignContractId(result.ContractId);
             if (task is not null)
             {
-                taskService.LogInfo(task.Id, $"BestSign contract signed by {result.UserAccount}");
-                // docuSignService.AddComment(task.DocuSignEnvelopeId, $"BestSign contract signed by {result.UserAccount}").GetAwaiter().GetResult();
+                taskService.LogInfo(task.Id, $"Contract signed by {result.UserAccount} - Contract signing");
+                docuSignService.UpdateComment(task.DocuSignEnvelopeId, $"Contract signed by {result.UserAccount} - Contract signing").GetAwaiter().GetResult();
             }
         }
         else if (dto.Type == "CONTRACT_COMPLETE")
@@ -53,9 +53,9 @@ public class BestsignController : ControllerBase
                 var task = taskService.GetTaskByBestSignContractId(contractId);
                 if (task is not null)
                 {
-                    taskService.LogInfo(task.Id, "BestSign Contract Completed");
+                    taskService.LogInfo(task.Id, "Contract signing completed");
                     taskService.ChangeStep(task.Id, TaskStep.ContractCompleted);
-                    // docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Completed").GetAwaiter().GetResult();
+                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, "Contract signing completed").GetAwaiter().GetResult();
                 }
             }
         }
@@ -65,9 +65,9 @@ public class BestsignController : ControllerBase
             var task = taskService.GetTaskByBestSignContractId(result.ContractId);
             if (task is not null)
             {
-                taskService.LogInfo(task.Id, "BestSign Contract Overdue");
+                taskService.LogInfo(task.Id, "The contract has expired");
                 taskService.ChangeStep(task.Id, TaskStep.Failed);
-                // docuSignService.AddComment(task.DocuSignEnvelopeId, "BestSign Contract Overdue").GetAwaiter().GetResult();
+                docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has expired").GetAwaiter().GetResult();
             }
         }
 
