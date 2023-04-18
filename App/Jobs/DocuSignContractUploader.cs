@@ -7,37 +7,39 @@ namespace Jobs;
 public class DocuSignContractUploader : BackgroundService
 {
     private readonly ILogger<EmailSender> _logger;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly TaskService _taskService;
-    private readonly DocuSignService _docuSignService;
-    private readonly BestSignService _bestSignService;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private TaskService _taskService = null!;
+    private DocuSignService _docuSignService = null!;
+    private BestSignService _bestSignService = null!;
     public DocuSignContractUploader(
         ILogger<EmailSender> logger,
-        IServiceScopeFactory serviceScopeFactory)
+        IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
-        _serviceScopeFactory = serviceScopeFactory;
-        var serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
-        _taskService = serviceProvider.GetRequiredService<TaskService>();
-        _docuSignService = serviceProvider.GetRequiredService<DocuSignService>();
-        _bestSignService = serviceProvider.GetRequiredService<BestSignService>();
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (true)
         {
-            try
+            using (var scope =  _scopeFactory.CreateScope())
             {
-                await DoWork();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in DocuSignReader");
-            }
-            finally
-            {
-                await Task.Delay(TimeSpan.FromDays(1));
+                _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
+                _docuSignService = scope.ServiceProvider.GetRequiredService<DocuSignService>();
+                _bestSignService = scope.ServiceProvider.GetRequiredService<BestSignService>();
+                try
+                {
+                    await DoWork();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in DocuSignReader");
+                }
+                finally
+                {
+                    await Task.Delay(TimeSpan.FromDays(1));
+                }
             }
         }
     }

@@ -9,33 +9,36 @@ namespace Jobs;
 public class ContactCanceller : BackgroundService
 {
     private readonly ILogger<DocuSignReader> _logger;
-    private readonly TaskService _taskService;
-    private readonly BestSignService _bestSign;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private TaskService _taskService = null!;
+    private BestSignService _bestSign = null!;
     public ContactCanceller(
         ILogger<DocuSignReader> logger,
-        IServiceScopeFactory serviceScopeFactory)
+        IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
-
-        var provider = serviceScopeFactory.CreateScope().ServiceProvider;
-        _taskService = provider.GetRequiredService<TaskService>();
-        _bestSign = provider.GetRequiredService<BestSignService>();
+        _scopeFactory = scopeFactory;
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (true)
         {
-            try
+            using (var scope = _scopeFactory.CreateScope())
             {
-                await DoWork();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in ContactCanceller");
-            }
-            finally
-            {
-                await Task.Delay(TimeSpan.FromMinutes(10));
+                _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
+                _bestSign = scope.ServiceProvider.GetRequiredService<BestSignService>();
+                try
+                {
+                    await DoWork();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in ContactCanceller");
+                }
+                finally
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(10));
+                }
             }
         }
     }

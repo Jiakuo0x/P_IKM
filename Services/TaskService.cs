@@ -10,7 +10,23 @@ public class TaskService
     {
         _db = db;
     }
+    public Dictionary<string, ElectronicSignatureTask> GetAllTasksAsDic()
+    {
+        var dic = _db.Set<ElectronicSignatureTask>()
+            .AsNoTracking()
+            .ToDictionary(i => i.DocuSignEnvelopeId);
 
+        return dic;
+    }
+    public void CreateTask(string envelopeId)
+    {
+        ElectronicSignatureTask task = new ElectronicSignatureTask();
+        task.CurrentStep = TaskStep.ContractCreating;
+        task.Counter = 0;
+        task.DocuSignEnvelopeId = envelopeId;
+        _db.Add(task);
+        _db.SaveChanges();
+    }
     public List<ElectronicSignatureTask> GetTasksByStep(TaskStep step)
     {
         var tasks = _db.Set<ElectronicSignatureTask>()

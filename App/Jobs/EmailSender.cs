@@ -7,37 +7,39 @@ using System.Text;
 public class EmailSender : BackgroundService
 {
     private readonly ILogger<EmailSender> _logger;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly EmailService _emailService;
-    private readonly TaskService _taskService;
-    private readonly DocuSignService _docuSignService;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private EmailService _emailService = null!;
+    private TaskService _taskService = null!;
+    private DocuSignService _docuSignService = null!;
     public EmailSender(
         ILogger<EmailSender> logger,
-        IServiceScopeFactory serviceScopeFactory)
+        IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
-        _serviceScopeFactory = serviceScopeFactory;
-        var serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
-        _emailService = serviceProvider.GetRequiredService<EmailService>();
-        _taskService = serviceProvider.GetRequiredService<TaskService>();
-        _docuSignService = serviceProvider.GetRequiredService<DocuSignService>();
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (true)
         {
-            try
+            using(var scope = _scopeFactory.CreateScope())
             {
-                await DoWork();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in DocuSignReader");
-            }
-            finally
-            {
-                await Task.Delay(TimeSpan.FromMinutes(10));
+                _emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
+                _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
+                _docuSignService = scope.ServiceProvider.GetRequiredService<DocuSignService>();
+                try
+                {
+                    await DoWork();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in DocuSignReader");
+                }
+                finally
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(10));
+                }
             }
         }
     }

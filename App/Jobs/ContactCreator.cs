@@ -8,40 +8,43 @@ namespace Jobs;
 public class ContactCreator : BackgroundService
 {
     private readonly ILogger<ContactCreator> _logger;
-    private readonly DocuSignService _docuSign;
-    private readonly BestSignService _bestSign;
-    private readonly TaskService _taskService;
-    private readonly TemplateMappingService _templateMappingService;
-    private readonly DocumentService _documentService;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private DocuSignService _docuSign = null!;
+    private BestSignService _bestSign = null!;
+    private TaskService _taskService = null!;
+    private TemplateMappingService _templateMappingService = null!;
+    private DocumentService _documentService = null!;
 
     public ContactCreator(
         ILogger<ContactCreator> logger,
-        IServiceScopeFactory serviceScopeFactory)
+        IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
-
-        var serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
-        _docuSign = serviceProvider.GetRequiredService<DocuSignService>();
-        _bestSign = serviceProvider.GetRequiredService<BestSignService>();
-        _taskService = serviceProvider.GetRequiredService<TaskService>();
-        _templateMappingService = serviceProvider.GetRequiredService<TemplateMappingService>();
-        _documentService = serviceProvider.GetRequiredService<DocumentService>();
+        _scopeFactory = scopeFactory;
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (true)
         {
-            try
+            using (var scope = _scopeFactory.CreateScope())
             {
-                await DoWork();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in ContractCreator");
-            }
-            finally
-            {
-                await Task.Delay(TimeSpan.FromMinutes(10));
+                _docuSign = scope.ServiceProvider.GetRequiredService<DocuSignService>();
+                _bestSign = scope.ServiceProvider.GetRequiredService<BestSignService>();
+                _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
+                _templateMappingService = scope.ServiceProvider.GetRequiredService<TemplateMappingService>();
+                _documentService = scope.ServiceProvider.GetRequiredService<DocumentService>();
+                try
+                {
+                    await DoWork();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in ContractCreator");
+                }
+                finally
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(10));
+                }
             }
         }
     }

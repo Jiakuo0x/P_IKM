@@ -6,35 +6,38 @@ namespace Jobs;
 public class SignRemainder : BackgroundService
 {
     private readonly ILogger<SignRemainder> _logger;
-    private readonly TaskService _taskService;
-    private readonly BestSignService _bestSign;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private TaskService _taskService = null!;
+    private BestSignService _bestSign = null!;
 
     public SignRemainder(
         ILogger<SignRemainder> logger,
-        IServiceScopeFactory serviceScopeFactory)
+        IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
-
-        var provider = serviceScopeFactory.CreateScope().ServiceProvider;
-        _taskService = provider.GetRequiredService<TaskService>();
-        _bestSign = provider.GetRequiredService<BestSignService>();
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (true)
         {
-            try
+            using(var scope = _scopeFactory.CreateScope())
             {
-                await DoWork();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in DocuSignReader");
-            }
-            finally
-            {
-                await Task.Delay(TimeSpan.FromDays(1));
+                _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
+                _bestSign = scope.ServiceProvider.GetRequiredService<BestSignService>();
+                try
+                {
+                    await DoWork();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in DocuSignReader");
+                }
+                finally
+                {
+                    await Task.Delay(TimeSpan.FromDays(1));
+                }
             }
         }
     }
