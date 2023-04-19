@@ -238,7 +238,8 @@ public class ContactCreator : BackgroundService
 
         var supplierContracter = formData.FirstOrDefault(i => i.Name == "Supplier Contacter");
         var supplierContract = formData.FirstOrDefault(i => i.Name == "Supplier Contact");
-        if (supplierContracter is not null)
+        if (supplierContracter is not null && supplierContract is not null &&
+            !string.IsNullOrWhiteSpace(supplierContracter.Value) && !string.IsNullOrWhiteSpace(supplierContract.Value))
         {
             result.Add(new
             {
