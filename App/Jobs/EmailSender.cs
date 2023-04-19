@@ -23,7 +23,7 @@ public class EmailSender : BackgroundService
     {
         while (true)
         {
-            using(var scope = _scopeFactory.CreateScope())
+            using (var scope = _scopeFactory.CreateScope())
             {
                 _emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
                 _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
@@ -46,21 +46,30 @@ public class EmailSender : BackgroundService
     protected async Task DoWork()
     {
         var tasks = _taskService.GetTasksByStep(TaskStep.Failed).ToList();
-        foreach(var task in tasks)
+        foreach (var task in tasks)
         {
             var envelope = await _docuSignService.GetEnvelopeAsync(task.DocuSignEnvelopeId);
-            var toEmail = envelope.Sender.Email;
-            var taskLogs = _taskService.GetTaskLogs(task.Id);
+            var recipients = envelope.Recipients;
 
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Your contract is failed");
-            sb.AppendLine("Please contact us for more information");
-            sb.AppendLine("====================================");
-            foreach(var log in taskLogs)
+            var firstSigner = recipients.Signers.Select(i => new { i.Email, Order = int.Parse(i.RoutingOrder) }).MinBy(i => i.Order);
+            if (firstSigner != null)
             {
-                sb.AppendLine($"[{log.Step}]: {log.Log} - {log.Created}");
+                var taskLogs = _taskService.GetTaskLogs(task.Id);
+
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("Your contract is failed");
+                sb.AppendLine("Please contact us for more information");
+                sb.AppendLine("====================================");
+                foreach (var log in taskLogs)
+                {
+                    sb.AppendLine($"[{log.Step}]: {log.Log} - {log.Created}");
+                }
+                _emailService.SendEmail(firstSigner.Email, "Your contract is failed", sb.ToString());
             }
-            _emailService.SendEmail(toEmail, "Your contract is failed", sb.ToString());
+            else
+            {
+                _taskService.LogError(task.Id, "Failed to send email notification. - Signer not found.");
+            }
 
             _taskService.ChangeStep(task.Id, TaskStep.Completed);
         }
