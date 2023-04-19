@@ -51,23 +51,23 @@ public class EmailSender : BackgroundService
             var envelope = await _docuSignService.GetEnvelopeAsync(task.DocuSignEnvelopeId);
             var recipients = envelope.Recipients;
 
+            var taskLogs = _taskService.GetTaskLogs(task.Id);
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("Your contract is failed");
+            sb.AppendLine("Contract Info:");
+            sb.AppendLine("DocuSign Envelope Id: " + task.DocuSignEnvelopeId);
+            sb.AppendLine("BestSign Contract Id:" + task.BestSignContractId);
+            sb.AppendLine("System Task Id: " + task.Id);
+            sb.AppendLine("Please contact us for more information");
+            sb.AppendLine("====================================");
+            foreach (var log in taskLogs)
+            {
+                sb.AppendLine($"[{log.Step}]: {log.Log} - {log.Created}");
+            }
+
             var firstSigner = recipients.Signers.Select(i => new { i.Email, Order = int.Parse(i.RoutingOrder) }).MinBy(i => i.Order);
             if (firstSigner != null)
             {
-                var taskLogs = _taskService.GetTaskLogs(task.Id);
-
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("Your contract is failed");
-                sb.AppendLine("Contract Info:");
-                sb.AppendLine("DocuSign Envelope Id: " + task.DocuSignEnvelopeId);
-                sb.AppendLine("BestSign Contract Id:" + task.BestSignContractId);
-                sb.AppendLine("System Task Id: " + task.Id);
-                sb.AppendLine("Please contact us for more information");
-                sb.AppendLine("====================================");
-                foreach (var log in taskLogs)
-                {
-                    sb.AppendLine($"[{log.Step}]: {log.Log} - {log.Created}");
-                }
                 _emailService.SendEmail(firstSigner.Email, "Your contract is failed", sb.ToString());
             }
             else
@@ -75,6 +75,7 @@ public class EmailSender : BackgroundService
                 _taskService.LogError(task.Id, "Failed to send email notification. - Signer not found.");
             }
 
+            await _docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, sb.ToString());
             _taskService.ChangeStep(task.Id, TaskStep.Completed);
         }
     }

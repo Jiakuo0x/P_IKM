@@ -2,6 +2,7 @@
 using DocuSign.eSign.Model;
 using Lib.DocuSign;
 using Microsoft.Extensions.Options;
+using System.Numerics;
 
 namespace Services;
 
@@ -110,5 +111,15 @@ public class DocuSignService
         if (listener is null) return false;
 
         return true;
+    }
+
+    public async Task VoidedEnvelope(string envelopeId, string reason)
+    {
+        var client = _clientManager.GetClient();
+        EnvelopesApi envelopesApi = new(client);
+        var envelope = await envelopesApi.GetEnvelopeAsync(_options.Value.AccountId, envelopeId);
+        envelope.Status = "voided";
+        envelope.VoidedReason = reason;
+        var response = await envelopesApi.UpdateAsync(_options.Value.AccountId, envelopeId, envelope);
     }
 }
