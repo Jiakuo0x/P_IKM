@@ -58,6 +58,10 @@ public class EmailSender : BackgroundService
 
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine("Your contract is failed");
+                sb.AppendLine("Contract Info:");
+                sb.AppendLine("DocuSign Envelope Id: " + task.DocuSignEnvelopeId);
+                sb.AppendLine("BestSign Contract Id:" + task.BestSignContractId);
+                sb.AppendLine("System Task Id: " + task.Id);
                 sb.AppendLine("Please contact us for more information");
                 sb.AppendLine("====================================");
                 foreach (var log in taskLogs)
