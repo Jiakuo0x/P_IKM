@@ -1,5 +1,4 @@
 ﻿using Database.Enums;
-using Microsoft.EntityFrameworkCore;
 
 namespace Services;
 
@@ -10,14 +9,6 @@ public class TaskService
     {
         _db = db;
     }
-    public Dictionary<string, ElectronicSignatureTask> GetAllTasksAsDic()
-    {
-        var dic = _db.Set<ElectronicSignatureTask>()
-            .AsNoTracking()
-            .ToDictionary(i => i.DocuSignEnvelopeId);
-
-        return dic;
-    }
     public void CreateTask(string envelopeId)
     {
         ElectronicSignatureTask task = new ElectronicSignatureTask();
@@ -27,17 +18,32 @@ public class TaskService
         _db.Add(task);
         _db.SaveChanges();
     }
+
+    public Dictionary<string, ElectronicSignatureTask> GetAllTasksAsDic()
+    {
+        var dic = _db.Set<ElectronicSignatureTask>()
+            .AsNoTracking()
+            .ToDictionary(i => i.DocuSignEnvelopeId);
+
+        return dic;
+    }
+
     public List<ElectronicSignatureTask> GetTasksByStep(TaskStep step)
     {
         var tasks = _db.Set<ElectronicSignatureTask>()
             .Where(i => i.CurrentStep == step)
-            .AsNoTracking().ToList();
+            .AsNoTracking()
+            .ToList();
+
         return tasks;
     }
 
     public ElectronicSignatureTask? GetTaskByBestSignContractId(string contractId)
     {
-        var task = _db.Set<ElectronicSignatureTask>().AsNoTracking().SingleOrDefault(i => i.BestSignContractId == contractId);
+        var task = _db.Set<ElectronicSignatureTask>()
+            .AsNoTracking()
+            .SingleOrDefault(i => i.BestSignContractId == contractId);
+
         return task;
     }
 
@@ -50,7 +56,10 @@ public class TaskService
 
     public void LogInfo(int taskId, string info)
     {
-        var task = _db.Set<ElectronicSignatureTask>().AsNoTracking().Single(i => i.Id == taskId);
+        var task = _db.Set<ElectronicSignatureTask>()
+            .AsNoTracking()
+            .Select(i => new { i.Id, i.CurrentStep })
+            .Single(i => i.Id == taskId);
 
         _db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
         {
@@ -63,7 +72,8 @@ public class TaskService
 
     public void LogError(int taskId, string error, int maxErrorCount = 5)
     {
-        var task = _db.Set<ElectronicSignatureTask>().Single(i => i.Id == taskId);
+        var task = _db.Set<ElectronicSignatureTask>()
+            .Single(i => i.Id == taskId);
 
         _db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
         {
@@ -74,15 +84,16 @@ public class TaskService
         task.Counter++;
         _db.SaveChanges();
 
-        if (task.Counter >= 5)
+        if (task.Counter >= maxErrorCount)
         {
-            ChangeStep(taskId, TaskStep.Failed);
+            this.ChangeStep(taskId, TaskStep.Failed);
         }
     }
 
     public void ChangeStep(int taskId, TaskStep newStep)
     {
-        var task = _db.Set<ElectronicSignatureTask>().Single(i => i.Id == taskId);
+        var task = _db.Set<ElectronicSignatureTask>()
+            .Single(i => i.Id == taskId);
 
         _db.Set<ElectronicSignatureTaskLog>().Add(new ElectronicSignatureTaskLog
         {
@@ -90,6 +101,7 @@ public class TaskService
             Step = task.CurrentStep,
             Log = $"[Task Step Change] {task.CurrentStep} -> {newStep}",
         });
+
         task.CurrentStep = newStep;
         task.Counter = 0;
 
@@ -101,7 +113,8 @@ public class TaskService
         var logs = _db.Set<ElectronicSignatureTaskLog>()
             .Where(i => i.TaskId == taskId)
             .OrderByDescending(i => i.Created)
-            .AsNoTracking().ToList();
+            .AsNoTracking()
+            .ToList();
         return logs;
     }
 }
