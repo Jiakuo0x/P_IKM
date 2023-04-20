@@ -42,6 +42,7 @@ public class ParameterMapping
 {
     public DocuSignDataType DocuSignDataType { get; set; }
     public string DocuSignDataName { get; set; } = string.Empty;
+    public BestSignDataType BestSignDataType { get; set; }
     public string BestSignDataName { get; set; } = string.Empty;
 }
 

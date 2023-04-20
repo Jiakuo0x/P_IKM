@@ -128,6 +128,7 @@ public class ContactCreator : BackgroundService
                     contractTitle = $"{document.Name}.pdf",
                 });
                 item.Add("appendingSignLabels", appendingSignLables);
+                item.Add("descriptionFields", GetDocumentDescriptionFields(createContractModel));
                 item.Add("content", docContent);
                 mainContract = item;
                 result.Add(item);
@@ -168,7 +169,7 @@ public class ContactCreator : BackgroundService
                 x = GetXPosition(aStamp.XPosition),
                 y = GetYPosition(aStamp.YPosition),
                 pageNumber = int.Parse(aStamp.PageNumber),
-                roleName = "RoleA",
+                roleName = "IKEA",
                 type = "SEAL",
             });
         }
@@ -181,12 +182,27 @@ public class ContactCreator : BackgroundService
                 x = GetXPosition(bStamp.XPosition),
                 y = GetYPosition(bStamp.YPosition),
                 pageNumber = int.Parse(bStamp.PageNumber),
-                roleName = "RoleB",
+                roleName = "Customer",
                 type = "SEAL",
             });
         }
         if (aStamp == null && bStamp == null)
             return null;
+        return result;
+    }
+    protected object GetDocumentDescriptionFields(CreateContractModel createContractModel)
+    {
+        List<object> result = new List<object>();
+
+        var parameterMappings = createContractModel.TemplateMapping?.ParameterMappings
+            .Where(i => i.BestSignDataType == BestSignDataType.DescriptionFields) ?? new List<ParameterMapping>();
+        foreach (var parameterMapping in parameterMappings)
+        {
+            Dictionary<string, string> item = new Dictionary<string, string>();
+            item.Add("fieldName", parameterMapping.BestSignDataName);
+            item.Add("fieldValue", MatchParameterMapping(parameterMapping, createContractModel));
+            result.Add(item);
+        }
         return result;
     }
     protected double GetXPosition(string xPosition)
@@ -201,6 +217,7 @@ public class ContactCreator : BackgroundService
         return y;
     }
     #endregion
+
 
     protected object CreateContractSender(CreateContractModel createContractModel)
     {
@@ -221,17 +238,19 @@ public class ContactCreator : BackgroundService
 
         var stampKeeper = formData.FirstOrDefault(i => i.Name == "StampKeeper");
         var signingCompany = formData.FirstOrDefault(i => i.Name == "Signing Company");
+        var stampCompany = formData.FirstOrDefault(i => i.Name == "StampCompany");
         if (stampKeeper is null) throw new Exception("Stamp Keeper is required field.");
-        if (signingCompany is null) throw new Exception("Signing Company is required field.");
+        if (signingCompany is null && stampCompany is null) throw new Exception("Signing Company or Stamp Company is required field.");
 
         result.Add(new
         {
             userInfo = new
             {
                 userAccount = stampKeeper.Value,
-                enterpriseName = signingCompany.ListSelectedValue,
+                enterpriseName = signingCompany?.ListSelectedValue ?? stampCompany!.Value,
             },
-            roleName = "RoleA",
+            routeOrder = "2",
+            roleName = "IKEA",
             receiverType = "SIGNER",
             userType = "ENTERPRISE",
         });
@@ -248,13 +267,60 @@ public class ContactCreator : BackgroundService
                     userAccount = supplierContract!.Value,
                     enterpriseName = supplierContracter.Value,
                 },
-                roleName = "RoleB",
+                routeOrder = "1",
+                roleName = "Customer",
                 receiverType = "SIGNER",
                 userType = "ENTERPRISE",
             });
         }
 
         return result;
+    }
+
+    protected string MatchParameterMapping(ParameterMapping mapping, CreateContractModel createContractModel)
+    {
+        if(mapping.DocuSignDataType == DocuSignDataType.FormData_Value)
+        {
+            var formData = createContractModel.EnvelopeFormData.FormData;
+            var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            if (formDataItem is null) throw new Exception($"Not found the FormDataItem:{mapping.DocuSignDataName}.");
+            return formDataItem.Value;
+        }
+        else if(mapping.DocuSignDataType == DocuSignDataType.FormData_ListSelectedValue)
+        {
+            var formData = createContractModel.EnvelopeFormData.FormData;
+            var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            if (formDataItem is null) throw new Exception($"Not found the FormDataItem:{mapping.DocuSignDataName}.");
+            return formDataItem.ListSelectedValue;
+        }
+        else if(mapping.DocuSignDataType == DocuSignDataType.TextCustomField)
+        {
+            var customFields = createContractModel.Envelope.CustomFields.TextCustomFields;
+            var customField = customFields.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            if (customField is null) throw new Exception($"Not found the custom field:{mapping.DocuSignDataName}.");
+            return customField.Value;
+        }
+        else if(mapping.DocuSignDataType == DocuSignDataType.ListCustomField)
+        {
+            var customFields = createContractModel.Envelope.CustomFields.ListCustomFields;
+            var customField = customFields.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            if (customField is null) throw new Exception($"Not found the custom field:{mapping.DocuSignDataName}.");
+            return customField.Value;
+        }
+        else if(mapping.DocuSignDataType == DocuSignDataType.ApplicantEmail)
+        {
+            var applicant = createContractModel.Envelope.Recipients.Signers.MinBy(i => int.Parse(i.RoutingOrder));
+            if (applicant is null) throw new Exception("Not found the applicant of envelope.");
+            return applicant.Email;
+        }
+        else if(mapping.DocuSignDataType == DocuSignDataType.SenderEmail)
+        {
+            return createContractModel.Envelope.Sender.Email;
+        }
+        else
+        {
+            throw new Exception($"Unsupported data type in mapping:{mapping.DocuSignDataType}");
+        }
     }
 }
 
