@@ -157,6 +157,7 @@ public class ContactCreator : BackgroundService
                     contractTitle = $"{document.Name}.pdf",
                 });
                 item.Add("appendingSignLables", appendingSignLables);
+                item.Add("descriptionFields", GetDocumentDescriptionFields(createContractModel));
                 item.Add("content", docContent);
                 result.Add(item);
             }
@@ -335,6 +336,7 @@ public class ContactCreator : BackgroundService
 
     protected string MatchParameterMapping(ParameterMapping mapping, CreateContractModel createContractModel)
     {
+        var test = createContractModel.Envelope;
         if (mapping.DocuSignDataType == DocuSignDataType.FormData_Value)
         {
             var formData = createContractModel.EnvelopeFormData.FormData;
