@@ -156,7 +156,7 @@ public class ContactCreator : BackgroundService
                 {
                     contractTitle = $"{document.Name}.pdf",
                 });
-                item.Add("appendingSignLables", appendingSignLables);
+                item.Add("appendingSignLabels", appendingSignLables);
                 item.Add("descriptionFields", GetDocumentDescriptionFields(createContractModel));
                 item.Add("content", docContent);
                 result.Add(item);
