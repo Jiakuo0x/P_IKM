@@ -23,10 +23,10 @@ public class TestController : ControllerBase
         };
     }
 
-    [HttpGet("docusign")]
-    public async Task<object> TestDocuSign([FromServices] DocuSignService docuSign)
+    [HttpGet("docusign/{envelopeId}")]
+    public async Task<object> TestDocuSign([FromServices] DocuSignService docuSign, string envelopeId)
     {
-        var res = await docuSign.MatchEnvelopes();
+        var res = await docuSign.GetEnvelopeAsync(envelopeId);
         return res;
     }
 

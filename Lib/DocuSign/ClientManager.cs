@@ -19,11 +19,13 @@ public class ClientManager
     {
         var client = new DocuSignClient(_options.Value.ApiBase);
 
+        var privateKey = _keyVaultManager.GetDocuSignSecret();
+
         client.RequestJWTUserToken(
                 _options.Value.ClientId,
                 _options.Value.UserId,
                 _options.Value.AuthServer,
-                Convert.FromBase64String(_keyVaultManager.GetDocuSignSecret()),
+                System.Text.Encoding.Default.GetBytes(privateKey),
                  1);
 
         return client;

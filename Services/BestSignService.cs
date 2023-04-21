@@ -46,7 +46,8 @@ public class BestSignService
         signStr += $"request-body={requestBodyMd5}";
         signStr += $"uri={requestUri}";
 
-        var encryptedBase64 = Encrypt.SignStr(signStr, _keyVaultManager.GetBestSignSecret());
+        var privateKey = _keyVaultManager.GetBestSignSecret();
+        var encryptedBase64 = Encrypt.SignStr(signStr,privateKey);
 
         client.DefaultRequestHeaders.Add("bestsign-signature", encryptedBase64);
 

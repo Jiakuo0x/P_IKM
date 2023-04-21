@@ -21,7 +21,7 @@
         "DocuSignDataType": 21,
         "DocuSignDataName": "eStamp Type",
         "BestSignDataType": 10,
-        "BestSignDataName": "文件类型"
+        "BestSignDataName": "DocuSign 签署文件类型"
     },
     {
         "DocuSignDataType": 30,
