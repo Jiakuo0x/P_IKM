@@ -279,7 +279,7 @@ public class ContactCreator : BackgroundService
                 userAccount = roleAAccount,
                 enterpriseName = roleACompanyName,
             },
-            routeOrder = "2",
+            routeOrder = 2,
             roleName = "IKEA",
             receiverType = "SIGNER",
             userType = "ENTERPRISE",
@@ -310,7 +310,7 @@ public class ContactCreator : BackgroundService
                     ifProxyClaimer = "true"
                 });
             }
-            item.Add("routeOrder", "1");
+            item.Add("routeOrder", 1);
             item.Add("roleName", "Customer");
             item.Add("receiverType", "SIGNER");
             item.Add("userType", "ENTERPRISE");
