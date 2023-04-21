@@ -33,10 +33,10 @@ public class TestController : ControllerBase
     [HttpGet("bestsign/remind/{contractId}")]
     public async Task<object> TestBestSignRemind([FromServices] BestSignService bestSign, string contractId)
     {
-        await bestSign.Post<object>("/api/contracts/remind", new
+        var result = await bestSign.Post<object>("/api/contracts/remind", new
         {
             contractId = contractId,
         });
-        return "ok";
+        return result;
     }
 }
