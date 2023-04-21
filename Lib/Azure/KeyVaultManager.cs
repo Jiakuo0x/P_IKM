@@ -11,13 +11,21 @@ public class KeyVaultManager
     {
         _options = options;
     }
+
+    private string? _docuSignSecret = null;
     public string GetDocuSignSecret()
     {
-        return GetSecret(_options.Value.DocuSignSecretName, _options.Value.DocuSignKeyVaultUrl);
+        if (_docuSignSecret is null)
+            _docuSignSecret = GetSecret(_options.Value.DocuSignSecretName, _options.Value.DocuSignKeyVaultUrl);
+        return _docuSignSecret;
     }
+
+    private string? _bestSignSecret = null;
     public string GetBestSignSecret()
     {
-        return GetSecret(_options.Value.BestSignSecretName, _options.Value.BestSignKeyVaultUrl);
+        if (_bestSignSecret is null)
+            _bestSignSecret = GetSecret(_options.Value.BestSignSecretName, _options.Value.BestSignKeyVaultUrl);
+        return _bestSignSecret;
     }
     public string GetSecret(string secretName, string keyVaultUrl)
     {

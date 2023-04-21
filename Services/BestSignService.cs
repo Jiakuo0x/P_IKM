@@ -14,10 +14,15 @@ public class BestSignService
 {
     private readonly IOptions<Configuration> _options;
     private readonly TokenManager _tokenManager;
-    public BestSignService(IOptions<Configuration> options, TokenManager tokenManager)
+    private readonly Lib.Azure.KeyVaultManager _keyVaultManager;
+    public BestSignService(
+        IOptions<Configuration> options, 
+        TokenManager tokenManager,
+        Lib.Azure.KeyVaultManager keyVaultManager)
     {
         _options = options;
         _tokenManager = tokenManager;
+        _keyVaultManager = keyVaultManager;
     }
     public async Task GenerateSignature(HttpClient client, string requestUri, object? requestBody = null)
     {
@@ -41,7 +46,7 @@ public class BestSignService
         signStr += $"request-body={requestBodyMd5}";
         signStr += $"uri={requestUri}";
 
-        var encryptedBase64 = Encrypt.SignStr(signStr, _options.Value.PrivateKey);
+        var encryptedBase64 = Encrypt.SignStr(signStr, _keyVaultManager.GetBestSignSecret());
 
         client.DefaultRequestHeaders.Add("bestsign-signature", encryptedBase64);
 

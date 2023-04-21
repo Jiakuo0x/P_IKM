@@ -4,27 +4,26 @@ namespace Lib.DocuSign;
 
 public class ClientManager
 {
-    private byte[]? _privateKey { get; set; }
-
     private readonly IOptions<Configuration> _options;
+    private readonly Azure.KeyVaultManager _keyVaultManager;
 
-    public ClientManager(IOptions<Configuration> options)
+    public ClientManager(
+        IOptions<Configuration> options,
+        Azure.KeyVaultManager keyVaultManager)
     {
         _options = options;
+        _keyVaultManager = keyVaultManager;
     }
 
     public DocuSignClient GetClient()
     {
         var client = new DocuSignClient(_options.Value.ApiBase);
 
-        if (_privateKey is null)
-            _privateKey = File.ReadAllBytes(_options.Value.PrivateKeyPath);
-
         client.RequestJWTUserToken(
                 _options.Value.ClientId,
                 _options.Value.UserId,
                 _options.Value.AuthServer,
-                _privateKey,
+                Convert.FromBase64String(_keyVaultManager.GetDocuSignSecret()),
                  1);
 
         return client;
