@@ -117,9 +117,11 @@ public class DocuSignService
     {
         var client = _clientManager.GetClient();
         EnvelopesApi envelopesApi = new(client);
-        var envelope = await envelopesApi.GetEnvelopeAsync(_options.Value.AccountId, envelopeId);
-        envelope.Status = "voided";
-        envelope.VoidedReason = reason;
-        var response = await envelopesApi.UpdateAsync(_options.Value.AccountId, envelopeId, envelope);
+
+        var response = await envelopesApi.UpdateAsync(_options.Value.AccountId, envelopeId, new Envelope
+        {
+            Status = "voided",
+            VoidedReason = reason,
+        });
     }
 }
