@@ -17,4 +17,5 @@ public enum BestSignDataType
     SenderAccount = 40,
     AStampHere = 50,
     BStampHere = 60,
+    Tab_eStampRequire = 200,
 }

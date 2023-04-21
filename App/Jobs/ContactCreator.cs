@@ -61,6 +61,8 @@ public class ContactCreator : BackgroundService
                 createContractModel.EnvelopeFormData = await _docuSign.GetEnvelopeFormDataAsync(task.DocuSignEnvelopeId);
                 createContractModel.TemplateMapping = MatchTemplateMapping(createContractModel);
 
+                if(await IsEStampRequire(createContractModel) is false) continue;
+
                 var contract = await CreateContract(createContractModel);
 
                 _taskService.UpdateTaskContractId(task.Id, contract.ContractId);
@@ -71,6 +73,20 @@ public class ContactCreator : BackgroundService
                 _taskService.LogError(task.Id, ex.Message);
             }
         }
+    }
+
+    protected async Task<bool> IsEStampRequire(CreateContractModel createContractModel)
+    {
+        var eStampRequire = MatchParameterMapping(createContractModel, BestSignDataType.Tab_eStampRequire);
+        if(eStampRequire is null) throw new Exception("System Error: Not found the FormData 'eStamp'.");
+        if (eStampRequire != "e-Stamp")
+        {
+            _taskService.LogInfo(createContractModel.Task.Id, "e-Stamp is not required.");
+            _taskService.ChangeStep(createContractModel.Task.Id, TaskStep.Completed);
+            await _docuSign.RemoveListener(createContractModel.Envelope.EnvelopeId);
+            return false;
+        }
+        return true;
     }
 
     protected TemplateMapping MatchTemplateMapping(CreateContractModel createContractModel)
@@ -323,28 +339,28 @@ public class ContactCreator : BackgroundService
         {
             var formData = createContractModel.EnvelopeFormData.FormData;
             var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
-            if (formDataItem is null) throw new Exception($"Not found the FormDataItem:{mapping.DocuSignDataName}.");
+            if (formDataItem is null) throw new Exception($"Not found the FormDataItem: {mapping.DocuSignDataName}.");
             return formDataItem.Value;
         }
         else if (mapping.DocuSignDataType == DocuSignDataType.FormData_ListSelectedValue)
         {
             var formData = createContractModel.EnvelopeFormData.FormData;
             var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
-            if (formDataItem is null) throw new Exception($"Not found the FormDataItem:{mapping.DocuSignDataName}.");
+            if (formDataItem is null) throw new Exception($"Not found the FormDataItem: {mapping.DocuSignDataName}.");
             return formDataItem.ListSelectedValue;
         }
         else if (mapping.DocuSignDataType == DocuSignDataType.TextCustomField)
         {
             var customFields = createContractModel.Envelope.CustomFields.TextCustomFields;
             var customField = customFields.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
-            if (customField is null) throw new Exception($"Not found the custom field:{mapping.DocuSignDataName}.");
+            if (customField is null) throw new Exception($"Not found the TextCustomField: {mapping.DocuSignDataName}.");
             return customField.Value;
         }
         else if (mapping.DocuSignDataType == DocuSignDataType.ListCustomField)
         {
             var customFields = createContractModel.Envelope.CustomFields.ListCustomFields;
             var customField = customFields.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
-            if (customField is null) throw new Exception($"Not found the custom field:{mapping.DocuSignDataName}.");
+            if (customField is null) throw new Exception($"Not found the ListCustomField: {mapping.DocuSignDataName}.");
             return customField.Value;
         }
         else if (mapping.DocuSignDataType == DocuSignDataType.ApplicantEmail)
@@ -359,7 +375,7 @@ public class ContactCreator : BackgroundService
         }
         else
         {
-            throw new Exception($"Unsupported data type in mapping:{mapping.DocuSignDataType}");
+            throw new Exception($"Unsupported data type in mapping: {mapping.DocuSignDataType}");
         }
     }
 }
