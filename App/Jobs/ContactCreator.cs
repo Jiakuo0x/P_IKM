@@ -234,13 +234,13 @@ public class ContactCreator : BackgroundService
     }
     protected double GetXPosition(string xPosition)
     {
-        var x = double.Parse("0." + xPosition);
+        var x = double.Parse(xPosition)/720;
         return x;
     }
 
     protected double GetYPosition(string yPosition)
     {
-        var y = double.Parse("0." + yPosition);
+        var y = 1 - (double.Parse(yPosition)/720*2);
         return y;
     }
     #endregion
