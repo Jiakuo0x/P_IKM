@@ -234,7 +234,7 @@ public class ContactCreator : BackgroundService
     }
     protected double GetXPosition(string xPosition)
     {
-        var x = double.Parse(xPosition)/720;
+        var x = double.Parse(xPosition)/360;
         return x;
     }
 
@@ -336,7 +336,6 @@ public class ContactCreator : BackgroundService
 
     protected string MatchParameterMapping(ParameterMapping mapping, CreateContractModel createContractModel)
     {
-        var test = createContractModel.Envelope;
         if (mapping.DocuSignDataType == DocuSignDataType.FormData_Value)
         {
             var formData = createContractModel.EnvelopeFormData.FormData;

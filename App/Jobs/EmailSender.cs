@@ -34,7 +34,7 @@ public class EmailSender : BackgroundService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in DocuSignReader");
+                    _logger.LogError(ex, "Error in EmailSender");
                 }
                 finally
                 {

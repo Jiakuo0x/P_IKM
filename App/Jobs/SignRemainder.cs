@@ -32,7 +32,7 @@ public class SignRemainder : BackgroundService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in DocuSignReader");
+                    _logger.LogInformation(ex, "Error in SignRemainder");
                 }
                 finally
                 {
