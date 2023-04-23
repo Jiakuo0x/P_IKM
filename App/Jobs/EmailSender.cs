@@ -75,8 +75,8 @@ public class EmailSender : BackgroundService
                 _taskService.LogError(task.Id, "Failed to send email notification. - Signer not found.");
             }
 
-            await _docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, sb.ToString());
             _taskService.ChangeStep(task.Id, TaskStep.Completed);
+            await _docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, sb.ToString());
         }
     }
 }
