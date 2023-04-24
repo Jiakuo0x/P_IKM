@@ -2,6 +2,7 @@
 using Database.Models;
 using Lib.DocuSign;
 using Services;
+using System.Data;
 
 namespace Jobs;
 
@@ -102,9 +103,9 @@ public class ContactCreator : BackgroundService
 
     protected async Task<CreateContractSuccessModel> CreateContract(CreateContractModel createContractModel)
     {
+        var documents = await CreateContractDocuments(createContractModel);
         var sender = CreateContractSender(createContractModel);
         var roles = CreateContractRoles(createContractModel);
-        var documents = await CreateContractDocuments(createContractModel);
 
         var apiResponse = await _bestSign.Post<CreateContractSuccessModel>($"/api/templates/send-contracts-sync-v2", new
         {
@@ -121,10 +122,10 @@ public class ContactCreator : BackgroundService
     # region CreateContractDocuments
     protected async Task<object> CreateContractDocuments(CreateContractModel createContractModel)
     {
-        List<Object> result = new();
+        Dictionary<string, object>? mainDocument = null;
+        List<object> attachments = new();
+        List<object> privateLetterFileInfos = new();
 
-        Dictionary<string, object>? mainContract = null;
-        List<Object> attachments = new();
         foreach (var document in createContractModel.Envelope.EnvelopeDocuments)
         {
             if (document.Name == "Summary") continue;
@@ -135,7 +136,7 @@ public class ContactCreator : BackgroundService
             var appendingSignLables = await AppendingSignLables(createContractModel, document.DocumentId);
 
             var item = new Dictionary<string, object>();
-            if (mainContract is null && appendingSignLables is not null)
+            if (mainDocument is null && appendingSignLables is not null)
             {
                 item.Add("documentId", createContractModel.TemplateMapping!.BestSignConfiguration.DocumentId);
                 item.Add("fileName", $"{document.Name}.pdf");
@@ -146,31 +147,27 @@ public class ContactCreator : BackgroundService
                 item.Add("appendingSignLabels", appendingSignLables);
                 item.Add("descriptionFields", GetDocumentDescriptionFields(createContractModel));
                 item.Add("content", docContent);
-                mainContract = item;
-                result.Add(item);
+                mainDocument = item;
             }
-            else if (mainContract is not null && appendingSignLables is not null)
-            {
-                item.Add("fileName", $"{document.Name}.pdf");
-                item.Add("contractConfig", new
-                {
-                    contractTitle = $"{document.Name}.pdf",
-                });
-                item.Add("appendingSignLabels", appendingSignLables);
-                item.Add("descriptionFields", GetDocumentDescriptionFields(createContractModel));
-                item.Add("content", docContent);
-                result.Add(item);
-            }
-            else
+            else if (mainDocument is not null && appendingSignLables is not null)
             {
                 item.Add("fileName", $"{document.Name}.pdf");
                 item.Add("content", docContent);
                 attachments.Add(item);
             }
+            else
+            {
+                item.Add("fileName", $"{document.Name}.pdf");
+                item.Add("content", docContent);
+                privateLetterFileInfos.Add(item);
+            }
         }
-        if (mainContract is null) throw new Exception("System Error: Not found the main contract.");
-        mainContract.Add("attachments", attachments);
-        return result;
+        if (mainDocument is null) throw new Exception("System Error: Not found the main contract.");
+        mainDocument.Add("attachments", attachments);
+
+        createContractModel.PrivateLetterFileInfos = privateLetterFileInfos;
+
+        return mainDocument;
     }
 
     protected async Task<List<Object>?> AppendingSignLables(CreateContractModel createContractModel, string documentId)
@@ -277,28 +274,33 @@ public class ContactCreator : BackgroundService
         var roleACompanyName = MatchParameterMapping(createContractModel, BestSignDataType.RoleACompanyName);
         if (roleACompanyName is null) throw new Exception("System Error: Not found the role A company name in mapping.");
 
-        result.Add(new
+        Dictionary<string, object> roleA = new();
+        roleA.Add("userInfo", new
         {
-            userInfo = new
-            {
-                userAccount = roleAAccount,
-                enterpriseName = roleACompanyName,
-            },
-            routeOrder = 2,
-            roleName = "IKEA",
-            receiverType = "SIGNER",
-            userType = "ENTERPRISE",
+            userAccount = roleAAccount,
+            enterpriseName = roleACompanyName,
         });
+        roleA.Add("routeOrder", 2);
+        roleA.Add("roleName", "IKEA");
+        roleA.Add("receiverType", "SIGNER");
+        roleA.Add("userType", "ENTERPRISE");
+        if (createContractModel.PrivateLetterFileInfos.Count > 0)
+            roleA.Add("communicateInfo", new
+            {
+                privateLetterFileInfos = createContractModel.PrivateLetterFileInfos,
+            });
+
+        result.Add(roleA);
 
         var roleBAccount = MatchParameterMapping(createContractModel, BestSignDataType.RoleBAccount);
         var roleBCompanyName = MatchParameterMapping(createContractModel, BestSignDataType.RoleBCompanyName);
 
         if (!string.IsNullOrEmpty(roleBCompanyName))
         {
-            Dictionary<string, object> item = new();
+            Dictionary<string, object> roleB = new();
             if (!string.IsNullOrEmpty(roleBAccount))
             {
-                item.Add("userInfo", new
+                roleB.Add("userInfo", new
                 {
                     userAccount = roleBAccount,
                     enterpriseName = roleBCompanyName,
@@ -306,20 +308,20 @@ public class ContactCreator : BackgroundService
             }
             else
             {
-                item.Add("userInfo", new
+                roleB.Add("userInfo", new
                 {
                     enterpriseName = roleBCompanyName,
                 });
-                item.Add("proxyClaimer", new
+                roleB.Add("proxyClaimer", new
                 {
                     ifProxyClaimer = "true"
                 });
             }
-            item.Add("routeOrder", 1);
-            item.Add("roleName", "Customer");
-            item.Add("receiverType", "SIGNER");
-            item.Add("userType", "ENTERPRISE");
-            result.Add(item);
+            roleB.Add("routeOrder", 1);
+            roleB.Add("roleName", "Customer");
+            roleB.Add("receiverType", "SIGNER");
+            roleB.Add("userType", "ENTERPRISE");
+            result.Add(roleB);
         }
 
         return result;
@@ -392,6 +394,7 @@ public class CreateContractModel
     public TemplateMapping? TemplateMapping { get; set; }
     public Envelope Envelope { get; set; } = null!;
     public EnvelopeFormData EnvelopeFormData { get; set; } = null!;
+    public List<object> PrivateLetterFileInfos { get; set; } = null!;
 }
 
 public class CreateContractSuccessModel

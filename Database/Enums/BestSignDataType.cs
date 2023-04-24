@@ -41,6 +41,16 @@ public enum BestSignDataType
     SenderAccount = 40,
 
     /// <summary>
+    /// The enterprise name of contract sender
+    /// </summary>
+    SenderEnterpriseName = 41,
+
+    /// <summary>
+    /// The business line of contract sender
+    /// </summary>
+    SenderBusinessLine = 42,
+
+    /// <summary>
     /// The signing location of Party A
     /// </summary>
     AStampHere = 50,
