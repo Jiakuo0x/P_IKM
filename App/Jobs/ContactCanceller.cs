@@ -58,6 +58,7 @@ public class ContactCanceller : BackgroundService
                     revokeReason = "The system has cancelled the contract because the relevant envelope of DocuSign has been cancelled",
                 });
                 _taskService.ChangeStep(task.Id, TaskStep.ContractCancelled);
+                _taskService.ChangeStep(task.Id, TaskStep.Completed);
             }
             catch (Exception ex)
             {
