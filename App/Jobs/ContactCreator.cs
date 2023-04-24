@@ -61,7 +61,7 @@ public class ContactCreator : BackgroundService
                 createContractModel.EnvelopeFormData = await _docuSign.GetEnvelopeFormDataAsync(task.DocuSignEnvelopeId);
                 createContractModel.TemplateMapping = MatchTemplateMapping(createContractModel);
 
-                if(await IsEStampRequire(createContractModel) is false) continue;
+                if (await IsEStampRequire(createContractModel) is false) continue;
 
                 var contract = await CreateContract(createContractModel);
 
@@ -78,7 +78,7 @@ public class ContactCreator : BackgroundService
     protected async Task<bool> IsEStampRequire(CreateContractModel createContractModel)
     {
         var eStampRequire = MatchParameterMapping(createContractModel, BestSignDataType.Tab_eStampRequire);
-        if(eStampRequire is null) throw new Exception("System Error: Not found the FormData 'eStamp'.");
+        if (eStampRequire is null) throw new Exception("System Error: Not found the FormData 'eStamp'.");
         if (eStampRequire != "e-Stamp")
         {
             _taskService.LogInfo(createContractModel.Task.Id, "e-Stamp is not required.");
@@ -212,7 +212,7 @@ public class ContactCreator : BackgroundService
                 });
             }
         }
-        
+
         if (result.Count == 0)
             return null;
         return result;
@@ -244,10 +244,7 @@ public class ContactCreator : BackgroundService
         var pY = double.Parse(yPosition);
 
         double y;
-        if(pY < 100)
-            y = 1 - (pY / 100);
-        else
-            y = 1 - (pY/ 1000);
+        y = 1 - (pY / 1000) - 0.1;
 
         return y;
     }
