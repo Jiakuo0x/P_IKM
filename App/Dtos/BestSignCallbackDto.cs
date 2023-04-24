@@ -1,12 +1,27 @@
-﻿using Newtonsoft.Json.Linq;
+﻿namespace App.Dtos;
 
-namespace App.Dtos
+/// <summary>
+/// The data transfer object of Bestsign callback
+/// </summary>
+public class BestSignCallbackDto
 {
-    public class BestSignCallbackDto
-    {
-        public string Timestamp { get; set; } = string.Empty;
-        public string ClientId { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public object? ResponseData { get; set; }
-    }
+    /// <summary>
+    /// The timestamp of the message
+    /// </summary>
+    public string Timestamp { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The client id of the developer
+    /// </summary>
+    public string ClientId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The type of the message
+    /// </summary>
+    public string Type { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The data of the response
+    /// </summary>
+    public object? ResponseData { get; set; }
 }
