@@ -31,7 +31,7 @@ public class BestsignController : ControllerBase
         [FromBody] BestSignCallbackDto dto)
     {
         // Record the callback log
-        _logger.LogInformation($"[BestSign] [Callback] {JsonConvert.SerializeObject(dto)}");
+        _logger.LogInformation($"[BestSign] [Callback] {JsonConvert.SerializeObject(dto)} - [Body] {dto.ResponseData}");
 
         // Handing the situation that contract send result
         if (dto.Type == "CONTRACT_SEND_RESULT")
@@ -46,6 +46,9 @@ public class BestsignController : ControllerBase
             {
                 // Record the task log
                 taskService.LogInfo(task.Id, "Contract creation completed.");
+
+                // Update the task step
+                taskService.ChangeStep(task.Id, TaskStep.ContractCreated);
 
                 // Update the custom field of DocuSign envelope
                 docuSignService.UpdateComment(task.DocuSignEnvelopeId, "Contract creation completed.").GetAwaiter().GetResult();

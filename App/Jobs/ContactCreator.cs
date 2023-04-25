@@ -67,7 +67,6 @@ public class ContactCreator : BackgroundService
                 var contract = await CreateContract(createContractModel);
 
                 _taskService.UpdateTaskContractId(task.Id, contract.ContractId);
-                _taskService.ChangeStep(task.Id, TaskStep.ContractCreated);
             }
             catch (Exception ex)
             {
