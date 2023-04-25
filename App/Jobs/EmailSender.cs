@@ -75,7 +75,7 @@ public class EmailSender : BackgroundService
 
             foreach (var log in taskLogs)
             {
-                sb.AppendLine($"[{log.Step}]: {log.Log} - {log.Created}");
+                sb.AppendLine($"[{log.Step}]: {log.Log} - {log.Created.ToLocalTime()}");
             }
 
             var firstSigner = recipients.Signers.Select(i => new { i.Email, Order = int.Parse(i.RoutingOrder) }).MinBy(i => i.Order);
