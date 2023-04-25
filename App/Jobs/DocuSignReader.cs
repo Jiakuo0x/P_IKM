@@ -51,22 +51,32 @@ public class DocuSignReader : BackgroundService
         {
             if (_docuSignService.EnvelopeIsPending(envelope) is false) continue;
 
-            if (envelope.Status == "voided")
+            try
             {
-                if(envelopesDic.ContainsKey(envelope.EnvelopeId) is false) continue;
+                if (envelope.Status == "voided")
+                {
+                    if (envelopesDic.ContainsKey(envelope.EnvelopeId) is false) continue;
 
-                var taskStatus = envelopesDic[envelope.EnvelopeId].CurrentStep;
-                if (taskStatus is TaskStep.ContractCancelling) continue;
-                if (taskStatus is TaskStep.ContractCancelled) continue;
+                    var taskStatus = envelopesDic[envelope.EnvelopeId].CurrentStep;
+                    if (taskStatus is TaskStep.ContractCancelling) continue;
+                    if (taskStatus is TaskStep.ContractCancelled) continue;
 
-                await _docuSignService.UpdateComment(envelope.EnvelopeId, "The envelope has been voided in DocuSign. Please wait for the middleware to revoke the relevant contract in Bestsign.");
-                _taskService.ChangeStep(envelopesDic[envelope.EnvelopeId].Id, TaskStep.ContractCancelling);
+                    _taskService.ChangeStep(envelopesDic[envelope.EnvelopeId].Id, TaskStep.ContractCancelling);
+                    await _docuSignService.UpdateComment(envelope.EnvelopeId, "The envelope has been voided in DocuSign. Please wait for the middleware to revoke the relevant contract in Bestsign.");
+                }
+                else
+                {
+                    if (envelopesDic.ContainsKey(envelope.EnvelopeId)) continue;
+                    _taskService.CreateTask(envelope.EnvelopeId);
+                    await _docuSignService.UpdateComment(envelope.EnvelopeId, "The envelope has been detected by IKEA middleware. Please wait for the middleware to create a contract in Bestsign.");
+                }
             }
-            else
+            catch(Exception ex)
             {
-                if(envelopesDic.ContainsKey(envelope.EnvelopeId)) continue;
-                await _docuSignService.UpdateComment(envelope.EnvelopeId, "The envelope has been detected by IKEA middleware. Please wait for the middleware to create a contract in Bestsign.");
-                _taskService.CreateTask(envelope.EnvelopeId);
+                if (envelopesDic.ContainsKey(envelope.EnvelopeId))
+                {
+                    _taskService.LogInfo(envelopesDic[envelope.EnvelopeId].Id, ex.Message);
+                }
             }
         }
     }
