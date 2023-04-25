@@ -290,7 +290,7 @@ public class ContactCreator : BackgroundService
         if (createContractModel.PrivateLetterFileInfos.Count > 0)
             roleA.Add("communicateInfo", new
             {
-                privateLetter = "签约须知内容",
+                privateLetter = "其他非盖章文件",
                 privateLetterFileInfos = createContractModel.PrivateLetterFileInfos,
             });
 
