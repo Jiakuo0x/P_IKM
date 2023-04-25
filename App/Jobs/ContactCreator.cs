@@ -144,7 +144,7 @@ public class ContactCreator : BackgroundService
                 item.Add("fileName", ConvertDocumentFileName(document.Name));
                 item.Add("contractConfig", new
                 {
-                    contractTitle = $"{document.Name}.pdf",
+                    contractTitle = ConvertDocumentFileName(document.Name),
                 });
                 item.Add("appendingSignLabels", appendingSignLables);
                 item.Add("descriptionFields", GetDocumentDescriptionFields(createContractModel));
