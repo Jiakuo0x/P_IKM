@@ -105,12 +105,12 @@ public class ContactCreator : BackgroundService
     protected async Task<CreateContractSuccessModel> CreateContract(CreateContractModel createContractModel)
     {
         var documents = await CreateContractDocuments(createContractModel);
-        var sender = CreateContractSender(createContractModel);
+        //var sender = CreateContractSender(createContractModel);
         var roles = CreateContractRoles(createContractModel);
 
         var apiResponse = await _bestSign.Post<CreateContractSuccessModel>($"/api/templates/send-contracts-sync-v2", new
         {
-            sender = sender,
+            //sender = sender,
             templateId = createContractModel.TemplateMapping!.BestSignTemplateId,
             roles = roles,
             documents = documents,
