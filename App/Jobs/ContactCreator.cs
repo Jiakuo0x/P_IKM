@@ -141,7 +141,7 @@ public class ContactCreator : BackgroundService
             if (mainDocument is null && appendingSignLables is not null)
             {
                 item.Add("documentId", createContractModel.TemplateMapping!.BestSignConfiguration.DocumentId);
-                item.Add("fileName", $"{document.Name}.pdf");
+                item.Add("fileName", ConvertDocumentFileName(document.Name));
                 item.Add("contractConfig", new
                 {
                     contractTitle = $"{document.Name}.pdf",
@@ -153,14 +153,14 @@ public class ContactCreator : BackgroundService
             }
             else if (mainDocument is not null && appendingSignLables is not null)
             {
-                item.Add("fileName", $"{document.Name}.pdf");
+                item.Add("fileName", ConvertDocumentFileName(document.Name));
                 item.Add("content", docContent);
                 item.Add("appendingSignLabels", appendingSignLables);
                 attachments.Add(item);
             }
             else
             {
-                item.Add("fileName", $"{document.Name}.pdf");
+                item.Add("fileName", ConvertDocumentFileName(document.Name));
                 item.Add("content", docContent);
                 privateLetterFileInfos.Add(item);
             }
@@ -174,6 +174,13 @@ public class ContactCreator : BackgroundService
 
         documents.Add(mainDocument);
         return documents;
+
+        string ConvertDocumentFileName(string fileName)
+        {
+            var index = fileName.LastIndexOf(".");
+            var result = fileName.Substring(0, index);
+            return result + ".pdf";
+        }
     }
 
     protected async Task<List<Object>?> AppendingSignLables(CreateContractModel createContractModel, EnvelopeDocument document)
