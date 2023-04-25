@@ -39,4 +39,9 @@ public enum DocuSignDataType
     /// The data from the email of the Docusign envelope sender
     /// </summary>
     SenderEmail = 40,
+
+    /// <summary>
+    /// The data from the checkbox group
+    /// </summary>
+    CheckboxGroup = 50,
 }

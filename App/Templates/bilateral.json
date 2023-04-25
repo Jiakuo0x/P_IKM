@@ -42,7 +42,7 @@
         "BestSignDataName": "合同金额"
     },
     {
-        "DocuSignDataType": 10,
+        "DocuSignDataType": 50,
         "DocuSignDataName": "Checkbox Group d00d960e-ce12-4b29-81cd-18e36fef1c6e",
         "BestSignDataType": 10,
         "BestSignDataName": "是否固定金额合同"

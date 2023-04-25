@@ -3,6 +3,7 @@ using Database.Models;
 using Lib.DocuSign;
 using Services;
 using System.Data;
+using System.Text;
 
 namespace Jobs;
 
@@ -385,6 +386,22 @@ public class ContactCreator : BackgroundService
         else if (mapping.DocuSignDataType == DocuSignDataType.SenderEmail)
         {
             return createContractModel.Envelope.Sender.Email;
+        }
+        else if(mapping.DocuSignDataType == DocuSignDataType.CheckboxGroup)
+        {
+            StringBuilder result = new StringBuilder();
+
+            var formData = createContractModel.EnvelopeFormData.FormData;
+            var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            if (formDataItem is null) throw new Exception($"Not found the FormDataItem: {mapping.DocuSignDataName}.");
+            var checkboxs = formDataItem.Value.Split(";");
+            foreach(var checkbox in checkboxs)
+            {
+                var checkboxValue = checkbox.Split(":");
+                if (checkboxValue.Length > 1 && checkboxValue[1] == "X")
+                    result.Append(checkboxValue[0]);
+            }
+            return result.ToString();
         }
         else
         {
