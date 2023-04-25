@@ -59,11 +59,13 @@ public class DocuSignReader : BackgroundService
                 if (taskStatus is TaskStep.ContractCancelling) continue;
                 if (taskStatus is TaskStep.ContractCancelled) continue;
 
+                await _docuSignService.UpdateComment(envelope.EnvelopeId, "The envelope has been voided in DocuSign. Please wait for the middleware to revoke the relevant contract in Bestsign.");
                 _taskService.ChangeStep(envelopesDic[envelope.EnvelopeId].Id, TaskStep.ContractCancelling);
             }
             else
             {
                 if(envelopesDic.ContainsKey(envelope.EnvelopeId)) continue;
+                await _docuSignService.UpdateComment(envelope.EnvelopeId, "The envelope has been detected by IKEA middleware. Please wait for the middleware to create a contract in Bestsign.");
                 _taskService.CreateTask(envelope.EnvelopeId);
             }
         }
