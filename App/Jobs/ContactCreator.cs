@@ -121,6 +121,7 @@ public class ContactCreator : BackgroundService
     # region CreateContractDocuments
     protected async Task<object> CreateContractDocuments(CreateContractModel createContractModel)
     {
+        List<object> documents = new();
         Dictionary<string, object>? mainDocument = null;
         List<object> attachments = new();
         List<object> privateLetterFileInfos = new();
@@ -152,6 +153,7 @@ public class ContactCreator : BackgroundService
             {
                 item.Add("fileName", $"{document.Name}.pdf");
                 item.Add("content", docContent);
+                item.Add("appendingSignLabels", appendingSignLables);
                 attachments.Add(item);
             }
             else
@@ -162,11 +164,14 @@ public class ContactCreator : BackgroundService
             }
         }
         if (mainDocument is null) throw new Exception("System Error: Not found the main contract.");
-        mainDocument.Add("attachments", attachments);
+
+        if(attachments.Count > 0)
+            mainDocument.Add("attachments", attachments);
 
         createContractModel.PrivateLetterFileInfos = privateLetterFileInfos;
 
-        return mainDocument;
+        documents.Add(mainDocument);
+        return documents;
     }
 
     protected async Task<List<Object>?> AppendingSignLables(CreateContractModel createContractModel, string documentId)
