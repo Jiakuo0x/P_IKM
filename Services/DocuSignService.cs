@@ -52,7 +52,7 @@ public class DocuSignService
         var customField = envelope.CustomFields.TextCustomFields.FirstOrDefault(i => i.Name == "Latest Status");
         if (customField is not null)
         {
-            customField.Value = $"{comment} - [{DateTime.Now:F}]";
+            customField.Value = $"{comment} - [{DateTime.Now:g}]";
         }
         await envelopesApi.UpdateCustomFieldsAsync(_options.Value.AccountId, envelopeId, envelope.CustomFields);
     }

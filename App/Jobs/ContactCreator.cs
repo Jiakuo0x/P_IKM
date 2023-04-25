@@ -1,5 +1,6 @@
 ﻿using Database.Enums;
 using Database.Models;
+using DocuSign.eSign.Model;
 using Lib.DocuSign;
 using Services;
 using System.Data;
@@ -134,7 +135,7 @@ public class ContactCreator : BackgroundService
             var docFile = await _docuSign.DownloadDocument(createContractModel.Envelope.EnvelopeId, document.DocumentId);
             var docContent = _documentService.DecryptDocument(docFile);
 
-            var appendingSignLables = await AppendingSignLables(createContractModel, document.DocumentId);
+            var appendingSignLables = await AppendingSignLables(createContractModel, document);
 
             var item = new Dictionary<string, object>();
             if (mainDocument is null && appendingSignLables is not null)
@@ -175,11 +176,11 @@ public class ContactCreator : BackgroundService
         return documents;
     }
 
-    protected async Task<List<Object>?> AppendingSignLables(CreateContractModel createContractModel, string documentId)
+    protected async Task<List<Object>?> AppendingSignLables(CreateContractModel createContractModel, EnvelopeDocument document)
     {
         List<Object> result = new();
 
-        var docTabs = await _docuSign.GetDocumentTabs(createContractModel.Envelope.EnvelopeId, documentId);
+        var docTabs = await _docuSign.GetDocumentTabs(createContractModel.Envelope.EnvelopeId, document.DocumentId);
 
         var aStampTabelName = MatchParameterMapping(createContractModel, BestSignDataType.AStampHere);
         if (!string.IsNullOrEmpty(aStampTabelName))
@@ -187,10 +188,11 @@ public class ContactCreator : BackgroundService
             var aStamps = docTabs.SignHereTabs?.Where(i => i.TabLabel == aStampTabelName).ToList() ?? new();
             foreach (var aStamp in aStamps)
             {
+                var page = document.Pages.First(i => i.Sequence == aStamp.PageNumber);
                 result.Add(new
                 {
-                    x = GetXPosition(aStamp.XPosition),
-                    y = GetYPosition(aStamp.YPosition),
+                    x = GetXPosition(aStamp.XPosition, page.Width),
+                    y = GetYPosition(aStamp.YPosition, page.Height),
                     pageNumber = int.Parse(aStamp.PageNumber),
                     roleName = "IKEA",
                     type = "SEAL",
@@ -204,10 +206,11 @@ public class ContactCreator : BackgroundService
             var bStamps = docTabs.SignHereTabs?.Where(i => i.TabLabel == bStampTabelName).ToList() ?? new();
             foreach (var bStamp in bStamps)
             {
+                var page = document.Pages.First(i => i.Sequence == bStamp.PageNumber);
                 result.Add(new
                 {
-                    x = GetXPosition(bStamp.XPosition),
-                    y = GetYPosition(bStamp.YPosition),
+                    x = GetXPosition(bStamp.XPosition, page.Width),
+                    y = GetYPosition(bStamp.YPosition, page.Height),
                     pageNumber = int.Parse(bStamp.PageNumber),
                     roleName = "Customer",
                     type = "SEAL",
@@ -234,20 +237,15 @@ public class ContactCreator : BackgroundService
         }
         return result;
     }
-    protected double GetXPosition(string xPosition)
+    protected double GetXPosition(string xPosition, string width)
     {
-        var pX = double.Parse(xPosition);
-        var x = pX / 1000;
+        var x = double.Parse(xPosition) / double.Parse(width);
         return x;
     }
 
-    protected double GetYPosition(string yPosition)
+    protected double GetYPosition(string yPosition, string height)
     {
-        var pY = double.Parse(yPosition);
-
-        double y;
-        y = 1 - (pY / 1000) - 0.1;
-
+        var y = 1 - (double.Parse(yPosition) / double.Parse(height)) - 0.1;
         return y;
     }
     #endregion
