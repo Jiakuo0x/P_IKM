@@ -77,12 +77,6 @@ public class BestSignService
 
         string requestMessage = JsonConvert.SerializeObject(data);
 
-        // Debug for request log
-        string filePath = "RequestLogs/" + Guid.NewGuid() + ".json";
-        File.Create(filePath).Close();
-        await File.WriteAllTextAsync(filePath, requestMessage);
-
-
         HttpContent content = new StringContent(requestMessage, Encoding.UTF8, "application/json");
         var resposneMessage = await client.PostAsync(_options.Value.ServerHost + url, content);
         var apiResponse = await resposneMessage.Content.ReadFromJsonAsync<ApiResponse<T>>();
