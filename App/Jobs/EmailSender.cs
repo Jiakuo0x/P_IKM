@@ -8,6 +8,7 @@ public class EmailSender : BackgroundService
 {
     private readonly ILogger<EmailSender> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
+    private TemplateMappingService _templateMappingService = null!;
     private EmailService _emailService = null!;
     private TaskService _taskService = null!;
     private DocuSignService _docuSignService = null!;
@@ -25,6 +26,7 @@ public class EmailSender : BackgroundService
         {
             using (var scope = _scopeFactory.CreateScope())
             {
+                _templateMappingService = scope.ServiceProvider.GetRequiredService<TemplateMappingService>();
                 _emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
                 _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
                 _docuSignService = scope.ServiceProvider.GetRequiredService<DocuSignService>();
@@ -49,6 +51,7 @@ public class EmailSender : BackgroundService
         foreach (var task in tasks)
         {
             var envelope = await _docuSignService.GetEnvelopeAsync(task.DocuSignEnvelopeId);
+            var envelopeFormData = await _docuSignService.GetEnvelopeFormDataAsync(task.DocuSignEnvelopeId);
             var recipients = envelope.Recipients;
 
             var taskLogs = _taskService.GetTaskLogs(task.Id);
@@ -60,6 +63,16 @@ public class EmailSender : BackgroundService
             sb.AppendLine("System Task Id: " + task.Id);
             sb.AppendLine("Please contact us for more information");
             sb.AppendLine("====================================");
+
+            var templateMapping = MatchTemplateMapping(envelope);
+            var appendingMappings = templateMapping.ParameterMappings.Where(i => i.BestSignDataType == BestSignDataType.DescriptionFields).ToList();
+            foreach (var appendingMapping in appendingMappings)
+            {
+                var value = MatchParameterMapping(appendingMapping, envelope, envelopeFormData);
+                sb.AppendLine($"{appendingMapping.BestSignDataName}:\t{value}");
+            }
+            sb.AppendLine("====================================");
+
             foreach (var log in taskLogs)
             {
                 sb.AppendLine($"[{log.Step}]: {log.Log} - {log.Created}");
@@ -77,6 +90,74 @@ public class EmailSender : BackgroundService
 
             _taskService.ChangeStep(task.Id, TaskStep.Completed);
             await _docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, sb.ToString());
+        }
+    }
+
+    protected TemplateMapping MatchTemplateMapping(Envelope envelope)
+    {
+        var envelopeType = envelope
+            .CustomFields.ListCustomFields.SingleOrDefault(i => i.Name == "eStamp Type");
+        if (envelopeType == null) throw new Exception("System Error: Not found the custom field 'eStamp Type'.");
+
+        var templateMapping = _templateMappingService.GetMappingByDocuSignId(envelopeType.Value);
+
+        return templateMapping;
+    }
+
+    protected string? MatchParameterMapping(ParameterMapping mapping, Envelope envelope, EnvelopeFormData envelopeFormData)
+    {
+        if (mapping.DocuSignDataType == DocuSignDataType.FormData_Value)
+        {
+            var formData = envelopeFormData.FormData;
+            var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            return formDataItem?.Value;
+        }
+        else if (mapping.DocuSignDataType == DocuSignDataType.FormData_ListSelectedValue)
+        {
+            var formData = envelopeFormData.FormData;
+            var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            return formDataItem?.ListSelectedValue;
+        }
+        else if (mapping.DocuSignDataType == DocuSignDataType.TextCustomField)
+        {
+            var customFields = envelope.CustomFields.TextCustomFields;
+            var customField = customFields.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            return customField?.Value;
+        }
+        else if (mapping.DocuSignDataType == DocuSignDataType.ListCustomField)
+        {
+            var customFields = envelope.CustomFields.ListCustomFields;
+            var customField = customFields.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            return customField?.Value;
+        }
+        else if (mapping.DocuSignDataType == DocuSignDataType.ApplicantEmail)
+        {
+            var applicant = envelope.Recipients.Signers.MinBy(i => int.Parse(i.RoutingOrder));
+            return applicant?.Email;
+        }
+        else if (mapping.DocuSignDataType == DocuSignDataType.SenderEmail)
+        {
+            return envelope.Sender.Email;
+        }
+        else if (mapping.DocuSignDataType == DocuSignDataType.CheckboxGroup)
+        {
+            StringBuilder result = new StringBuilder();
+
+            var formData = envelopeFormData.FormData;
+            var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            if (formDataItem is null) return null;
+            var checkboxs = formDataItem.Value.Split(";");
+            foreach (var checkbox in checkboxs)
+            {
+                var checkboxValue = checkbox.Split(":");
+                if (checkboxValue.Length > 1 && checkboxValue[1] == "X")
+                    result.Append(checkboxValue[0]);
+            }
+            return result.ToString();
+        }
+        else
+        {
+            return null;
         }
     }
 }
