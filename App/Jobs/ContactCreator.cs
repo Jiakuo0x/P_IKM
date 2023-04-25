@@ -288,13 +288,12 @@ public class ContactCreator : BackgroundService
         roleA.Add("roleName", "IKEA");
         roleA.Add("receiverType", "SIGNER");
         roleA.Add("userType", "ENTERPRISE");
-        // Bug
-        //if (createContractModel.PrivateLetterFileInfos.Count > 0)
-        //    roleA.Add("communicateInfo", new
-        //    {
-        //        privateLetter = "签约须知内容",
-        //        privateLetterFileInfos = createContractModel.PrivateLetterFileInfos,
-        //    });
+        if (createContractModel.PrivateLetterFileInfos.Count > 0)
+            roleA.Add("communicateInfo", new
+            {
+                privateLetter = "签约须知内容",
+                privateLetterFileInfos = createContractModel.PrivateLetterFileInfos,
+            });
 
         result.Add(roleA);
 
