@@ -105,12 +105,12 @@ public class ContactCreator : BackgroundService
     protected async Task<CreateContractSuccessModel> CreateContract(CreateContractModel createContractModel)
     {
         var documents = await CreateContractDocuments(createContractModel);
-        //var sender = CreateContractSender(createContractModel);
+        var sender = CreateContractSender(createContractModel);
         var roles = CreateContractRoles(createContractModel);
 
         var apiResponse = await _bestSign.Post<CreateContractSuccessModel>($"/api/templates/send-contracts-sync-v2", new
         {
-            //sender = sender,
+            sender = sender,
             templateId = createContractModel.TemplateMapping!.BestSignTemplateId,
             roles = roles,
             documents = documents,
@@ -263,11 +263,17 @@ public class ContactCreator : BackgroundService
         var account = MatchParameterMapping(createContractModel, BestSignDataType.SenderAccount);
         if (account is null) throw new Exception("System Error: Not found the sender account in mapping.");
 
+        var enterpriseName = MatchParameterMapping(createContractModel, BestSignDataType.SenderEnterpriseName);
+        if (enterpriseName is null) throw new Exception("System Error: Not found the enterprise name of sender.");
+
+        var businessLine = MatchParameterMapping(createContractModel, BestSignDataType.SenderBusinessLine);
+        if (businessLine is null) throw new Exception("System Error: Not found the business line of sender.");
+
         var result = new
         {
             account = account,
-            enterpriseName = createContractModel.TemplateMapping!.BestSignConfiguration.EnterpriseName,
-            bizName = createContractModel.TemplateMapping!.BestSignConfiguration.BusinessLine,
+            enterpriseName = enterpriseName,
+            bizName = businessLine,
         };
 
         return result;

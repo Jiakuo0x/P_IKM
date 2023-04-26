@@ -1,74 +1,86 @@
 [
-    {
-        "DocuSignDataType": 10,
-        "DocuSignDataName": "DocClass",
-        "BestSignDataType": 10,
-        "BestSignDataName": "业务类别"
-    },
-    {
-        "DocuSignDataType": 10,
-        "DocuSignDataName": "DocContent",
-        "BestSignDataType": 10,
-        "BestSignDataName": "文件内容"
-    },
-    {
-        "DocuSignDataType": 10,
-        "DocuSignDataName": "DocName",
-        "BestSignDataType": 10,
-        "BestSignDataName": "文件内容（其他）"
-    },
-    {
-        "DocuSignDataType": 21,
-        "DocuSignDataName": "eStamp Type",
-        "BestSignDataType": 10,
-        "BestSignDataName": "DocuSign 签署文件类型"
-    },
-    {
-        "DocuSignDataType": 30,
-        "DocuSignDataName": "ApplicantEmail",
-        "BestSignDataType": 10,
-        "BestSignDataName": "申请人姓名"
-    },
-    {
-        "DocuSignDataType": 10,
-        "DocuSignDataName": "StampCompany",
-        "BestSignDataType": 10,
-        "BestSignDataName": "雇主公司名称"
-    },
-    {
-        "DocuSignDataType": 40,
-        "DocuSignDataName": "SenderEmail",
-        "BestSignDataType": 10,
-        "BestSignDataName": "合同发送人账号"
-    },
-    {
-        "DocuSignDataType": 10,
-        "DocuSignDataName": "StampCompany",
-        "BestSignDataType": 20,
-        "BestSignDataName": "[甲方公司名称]"
-    },
-    {
-        "DocuSignDataType": 10,
-        "DocuSignDataName": "StampKeeper",
-        "BestSignDataType": 21,
-        "BestSignDataName": "[甲方账户信息]"
-    },
-    {
-        "DocuSignDataType": 40,
-        "DocuSignDataName": "SenderEmail",
-        "BestSignDataType": 40,
-        "BestSignDataName": "[合同发送人账户]"
-    },
-    {
-        "DocuSignDataType": 0,
-        "DocuSignDataName": "A Stamp Here",
-        "BestSignDataType": 50,
-        "BestSignDataName": "[甲方签章位置]"
-    },
-    {
-        "DocuSignDataType": 11,
-        "DocuSignDataName": "estamp",
-        "BestSignDataType": 200,
-        "BestSignDataName": "[是否需要电子签章标记]"
-    }
+  {
+    "DocuSignDataType": 10,
+    "DocuSignDataName": "DocClass",
+    "BestSignDataType": 10,
+    "BestSignDataName": "业务类别"
+  },
+  {
+    "DocuSignDataType": 10,
+    "DocuSignDataName": "DocContent",
+    "BestSignDataType": 10,
+    "BestSignDataName": "文件内容"
+  },
+  {
+    "DocuSignDataType": 10,
+    "DocuSignDataName": "DocName",
+    "BestSignDataType": 10,
+    "BestSignDataName": "文件内容（其他）"
+  },
+  {
+    "DocuSignDataType": 21,
+    "DocuSignDataName": "eStamp Type",
+    "BestSignDataType": 10,
+    "BestSignDataName": "DocuSign 签署文件类型"
+  },
+  {
+    "DocuSignDataType": 30,
+    "DocuSignDataName": "ApplicantEmail",
+    "BestSignDataType": 10,
+    "BestSignDataName": "申请人姓名"
+  },
+  {
+    "DocuSignDataType": 10,
+    "DocuSignDataName": "StampCompany",
+    "BestSignDataType": 10,
+    "BestSignDataName": "雇主公司名称"
+  },
+  {
+    "DocuSignDataType": 40,
+    "DocuSignDataName": "SenderEmail",
+    "BestSignDataType": 10,
+    "BestSignDataName": "合同发送人账号"
+  },
+  {
+    "DocuSignDataType": 10,
+    "DocuSignDataName": "StampCompany",
+    "BestSignDataType": 20,
+    "BestSignDataName": "[甲方公司名称]"
+  },
+  {
+    "DocuSignDataType": 10,
+    "DocuSignDataName": "StampKeeper",
+    "BestSignDataType": 21,
+    "BestSignDataName": "[甲方账户信息]"
+  },
+  {
+    "DocuSignDataType": 40,
+    "DocuSignDataName": "SenderEmail",
+    "BestSignDataType": 40,
+    "BestSignDataName": "[合同发送人账户]"
+  },
+  {
+    "DocuSignDataType": 10,
+    "DocuSignDataName": "ApplicantCompany",
+    "BestSignDataType": 41,
+    "BestSignDataName": "[合同发送人公司名称]"
+  },
+  {
+    "DocuSignDataType": 10,
+    "DocuSignDataName": "BizLine",
+    "BestSignDataType": 42,
+    "BestSignDataName": "[合同发送人业务线名称]"
+  },
+  {
+    "DocuSignDataType": 0,
+    "DocuSignDataName": "A Stamp Here",
+    "BestSignDataType": 50,
+    "BestSignDataName": "[甲方签章位置]"
+  },
+  {
+    "DocuSignDataType": 11,
+    "DocuSignDataName": "estamp",
+    "BestSignDataType": 200,
+    "BestSignDataName": "[是否需要电子签章标记]"
+  }
 ]
