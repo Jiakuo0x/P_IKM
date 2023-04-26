@@ -2,8 +2,17 @@
 
 namespace Services;
 
+/// <summary>
+/// Document service
+/// </summary>
 public class DocumentService
 {
+    /// <summary>
+    /// Remove the signature from the PDF file and return the new PDF file stream.
+    /// </summary>
+    /// <param name="document">The originial PDF file stream</param>
+    /// <returns>The PDF file stream without the signature</returns>
+    /// <exception cref="Exception">The uploaded document is not a PDF file</exception>
     public byte[] DecryptDocument(Stream document)
     {
         Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument();

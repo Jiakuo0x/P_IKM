@@ -66,21 +66,14 @@ public class BestSignService
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
     }
 
-    public async Task<T> Get<T>(string uri)
-    {
-        HttpClient client = new HttpClient();
-        await GenerateSignature(client, uri);
-        var apiResponse = await client.GetFromJsonAsync<ApiResponse<T>>(_options.Value.ServerHost + uri);
-
-        if (apiResponse is null)
-            throw new Exception($"[BestSign Error] [Return Value Error] URL:{client.BaseAddress}");
-
-        if (apiResponse.Code != "0")
-            throw new Exception($"[BestSign Error] Code:{apiResponse.Code} Message:{apiResponse.Message}");
-
-        return apiResponse.Data;
-    }
-
+    /// <summary>
+    /// Send an HTTP POST request
+    /// </summary>
+    /// <typeparam name="T">The type of response body</typeparam>
+    /// <param name="url">The request url</param>
+    /// <param name="data">The request body data</param>
+    /// <returns>Response body</returns>
+    /// <exception cref="Exception">The HTTP request is abnormal, or an error code is returned.</exception>
     public async Task<T> Post<T>(string url, object data)
     {
         HttpClient client = new HttpClient();
@@ -101,6 +94,13 @@ public class BestSignService
         return apiResponse.Data;
     }
 
+    /// <summary>
+    /// Send an HTTP POST request.
+    /// The methoed is used to download file.
+    /// </summary>
+    /// <param name="url">The request url</param>
+    /// <param name="data">The reuqest body data</param>
+    /// <returns>File stream</returns>
     public async Task<Stream> PostAsStream(string url, object data)
     {
         HttpClient client = new HttpClient();
