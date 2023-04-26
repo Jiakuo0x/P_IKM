@@ -50,14 +50,20 @@ public class DocuSignReader : BackgroundService
     protected async Task DoWork()
     {
         var envelopes = await _docuSignService.MatchEnvelopes();
+
+        // Cache the tasks from the database
         var envelopesDic = _taskService.GetAllTasksAsDic();
 
         foreach (var envelope in envelopes.Envelopes)
         {
+            // If the envelope is not in a pending state, the skip this envelope
             if (_docuSignService.EnvelopeIsPending(envelope) is false) continue;
 
             try
             {
+                // If the envelope status is "voided", first check if there are any related tasks in the database.
+                // Then, check if the current status of the task needs to be processed.
+                // Finally, change the task status, assign it to other tasks for processing, and record the status in the custom field of the envelope
                 if (envelope.Status == "voided")
                 {
                     if (envelopesDic.ContainsKey(envelope.EnvelopeId) is false) continue;
@@ -73,6 +79,7 @@ public class DocuSignReader : BackgroundService
                     _taskService.ChangeStep(envelopesDic[envelope.EnvelopeId].Id, TaskStep.ContractCancelling);
                     await _docuSignService.UpdateComment(envelope.EnvelopeId, "Waiting to revoke the contract.");
                 }
+                // Check if the envelope needs to be processed. If so, create a task in the database and record the status in the custom field of the envelope
                 else
                 {
                     if (envelopesDic.ContainsKey(envelope.EnvelopeId)) continue;

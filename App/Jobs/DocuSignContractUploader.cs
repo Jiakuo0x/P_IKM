@@ -56,6 +56,7 @@ public class DocuSignContractUploader : BackgroundService
         {
             try
             {
+                // Retrieve the contract file from Bestsign.(This is a zip file)
                 var result = await _bestSignService.PostAsStream("/api/contracts/download-file", new
                 {
                     contractIds = new[] { task.BestSignContractId }
@@ -64,6 +65,8 @@ public class DocuSignContractUploader : BackgroundService
                 List<Document> documents = new List<Document>();
                 ZipArchive zipArchive = new ZipArchive(result);
                 int index = 800;
+
+                // Iterate through the files in the zip file
                 foreach (var entry in zipArchive.Entries)
                 {
                     documents.Add(new Document
@@ -77,8 +80,12 @@ public class DocuSignContractUploader : BackgroundService
                     index++;
                 }
 
+                // Append documents to envelope
                 await _docuSignService.AppendDocuments(task.DocuSignEnvelopeId, documents);
+
+                // Remove the recipient who is configured as a listener in the system
                 await _docuSignService.RemoveListener(task.DocuSignEnvelopeId);
+
                 _taskService.ChangeStep(task.Id, TaskStep.Completed);
             }
             catch (Exception ex)
@@ -88,6 +95,11 @@ public class DocuSignContractUploader : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Convert the file stream to a Base64-encoded string
+    /// </summary>
+    /// <param name="stream">File stream</param>
+    /// <returns>Base64-encoded string</returns>
     protected string ToBase64String(Stream stream)
     {
         byte[] bytes;

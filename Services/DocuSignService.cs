@@ -134,7 +134,7 @@ public class DocuSignService
     }
 
     /// <summary>
-    /// Remove the recipient who is configured as a listener in the envelope
+    /// Remove the recipient who is configured as a listener in the system
     /// </summary>
     /// <param name="envelopeId">Envelope ID</param>
     /// <returns>The task of the function</returns>
