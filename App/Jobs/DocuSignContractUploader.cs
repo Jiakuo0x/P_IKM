@@ -26,8 +26,10 @@ public class DocuSignContractUploader : BackgroundService
     {
         while (true)
         {
+            // Create a dependency injection lifecycle
             using (var scope =  _scopeFactory.CreateScope())
             {
+                // Retrieve relevant objects from the dependency injection container
                 _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
                 _docuSignService = scope.ServiceProvider.GetRequiredService<DocuSignService>();
                 _bestSignService = scope.ServiceProvider.GetRequiredService<BestSignService>();

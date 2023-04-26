@@ -27,8 +27,10 @@ public class EmailSender : BackgroundService
     {
         while (true)
         {
+            // Create a dependency injection lifecycle
             using (var scope = _scopeFactory.CreateScope())
             {
+                // Retrieve relevant objects from the dependency injection container
                 _templateMappingService = scope.ServiceProvider.GetRequiredService<TemplateMappingService>();
                 _emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
                 _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();

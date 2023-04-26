@@ -25,10 +25,10 @@ public class SignRemainder : BackgroundService
     {
         while (true)
         {
-            _logger.LogInformation($"[{DateTime.Now}] Start Job: {nameof(SignRemainder)}");
-
+            // Create a dependency injection lifecycle
             using (var scope = _scopeFactory.CreateScope())
             {
+                // Retrieve relevant objects from the dependency injection container
                 _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
                 _bestSign = scope.ServiceProvider.GetRequiredService<BestSignService>();
                 try
@@ -44,8 +44,6 @@ public class SignRemainder : BackgroundService
                     await Task.Delay(TimeSpan.FromDays(1));
                 }
             }
-
-            _logger.LogInformation($"[{DateTime.Now}] End Job: {nameof(SignRemainder)}");
         }
     }
 

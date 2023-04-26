@@ -24,8 +24,10 @@ public class ContactCanceller : BackgroundService
     {
         while (true)
         {
+            // Create a dependency injection lifecycle
             using (var scope = _scopeFactory.CreateScope())
             {
+                // Retrieve relevant objects from the dependency injection container
                 _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
                 _bestSign = scope.ServiceProvider.GetRequiredService<BestSignService>();
                 try

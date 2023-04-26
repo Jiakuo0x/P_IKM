@@ -25,8 +25,10 @@ public class DocuSignReader : BackgroundService
     {
         while (true)
         {
+            // Create a dependency injection lifecycle
             using (var scope = _scopeFactory.CreateScope())
             {
+                // Retrieve relevant objects from the dependency injection container
                 _docuSignService = scope.ServiceProvider.GetRequiredService<DocuSignService>();
                 _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
                 try
