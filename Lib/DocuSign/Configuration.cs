@@ -29,5 +29,9 @@ public class Configuration
     /// The authorization server url of DocuSign
     /// </summary>
     public string AuthServer { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The listener email of DocuSign
+    /// </summary>
     public string ListenEmail { get; set; } = string.Empty;
 }
