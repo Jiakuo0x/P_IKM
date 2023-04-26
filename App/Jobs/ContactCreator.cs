@@ -246,7 +246,7 @@ public class ContactCreator : BackgroundService
     }
     protected double GetXPosition(string xPosition, string width)
     {
-        var x = double.Parse(xPosition) / double.Parse(width) - 0.05;
+        var x = double.Parse(xPosition) / double.Parse(width) - 0.1;
         return x;
     }
 
