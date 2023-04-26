@@ -29,8 +29,6 @@ public class ContactCreator : BackgroundService
     {
         while (true)
         {
-            _logger.LogInformation($"[{DateTime.Now}] Start Job: {nameof(ContactCreator)}");
-
             using (var scope = _scopeFactory.CreateScope())
             {
                 _docuSign = scope.ServiceProvider.GetRequiredService<DocuSignService>();
@@ -48,11 +46,9 @@ public class ContactCreator : BackgroundService
                 }
                 finally
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(10));
+                    await Task.Delay(TimeSpan.FromSeconds(10));
                 }
             }
-
-            _logger.LogInformation($"[{DateTime.Now}] End Job: {nameof(ContactCreator)}");
         }
     }
     protected async Task DoWork()

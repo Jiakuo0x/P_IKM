@@ -23,8 +23,6 @@ public class DocuSignContractUploader : BackgroundService
     {
         while (true)
         {
-            _logger.LogInformation($"[{DateTime.Now}] Start Job: {nameof(DocuSignContractUploader)}");
-
             using (var scope =  _scopeFactory.CreateScope())
             {
                 _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
@@ -40,11 +38,9 @@ public class DocuSignContractUploader : BackgroundService
                 }
                 finally
                 {
-                    await Task.Delay(TimeSpan.FromDays(1));
+                    await Task.Delay(TimeSpan.FromSeconds(10));
                 }
             }
-
-            _logger.LogInformation($"[{DateTime.Now}] End Job: {nameof(DocuSignContractUploader)}");
         }
     }
 
