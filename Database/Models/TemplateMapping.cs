@@ -48,8 +48,5 @@ public class ParameterMapping
 
 public class BestSignTemplateConfiguration
 {
-    public string EnterpriseName { get; set; } = string.Empty;
-    public string BusinessLine { get; set; } = string.Empty;
-
     public string DocumentId { get; set; } = string.Empty;
 }
