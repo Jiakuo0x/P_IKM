@@ -246,7 +246,7 @@ public class ContactCreator : BackgroundService
     }
     protected double GetXPosition(string xPosition, string width)
     {
-        var x = double.Parse(xPosition) / double.Parse(width);
+        var x = double.Parse(xPosition) / double.Parse(width) - 0.5;
         return x;
     }
 
@@ -394,7 +394,7 @@ public class ContactCreator : BackgroundService
         }
         else if(mapping.DocuSignDataType == DocuSignDataType.CheckboxGroup)
         {
-            StringBuilder result = new StringBuilder();
+            List<string> checkboxNames = new();
 
             var formData = createContractModel.EnvelopeFormData.FormData;
             var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
@@ -404,9 +404,11 @@ public class ContactCreator : BackgroundService
             {
                 var checkboxValue = checkbox.Split(":");
                 if (checkboxValue.Length > 1 && checkboxValue[1] == "X")
-                    result.Append(checkboxValue[0]);
+                    checkboxNames.Add(checkboxValue[0]);
             }
-            return result.ToString();
+
+            var result = string.Join(';', checkboxNames);
+            return result;
         }
         else
         {
