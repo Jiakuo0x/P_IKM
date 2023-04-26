@@ -2,6 +2,9 @@ using DocuSign.eSign.Client;
 
 namespace Lib.DocuSign;
 
+/// <summary>
+/// DocuSign client manager
+/// </summary>
 public class ClientManager
 {
     private readonly IOptions<Configuration> _options;
@@ -15,6 +18,10 @@ public class ClientManager
         _keyVaultManager = keyVaultManager;
     }
 
+    /// <summary>
+    /// Get DocuSign client
+    /// </summary>
+    /// <returns>DocuSign client</returns>
     public DocuSignClient GetClient()
     {
         var client = new DocuSignClient(_options.Value.ApiBase);

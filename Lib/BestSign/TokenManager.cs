@@ -2,6 +2,9 @@ using Lib.BestSign.Dtos;
 
 namespace Lib.BestSign;
 
+/// <summary>
+/// Bestsign token manager
+/// </summary>
 public class TokenManager
 {
     private readonly IOptions<Configuration> _options;
@@ -9,6 +12,12 @@ public class TokenManager
     {
         _options = options;
     }
+
+    /// <summary>
+    /// Get Bestsign token
+    /// </summary>
+    /// <returns>Bestsign token</returns>
+    /// <exception cref="Exception">Failed to get token from BestSign</exception>
     public async Task<Token> GetToken()
     {
         var client = new HttpClient();
