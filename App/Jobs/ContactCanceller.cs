@@ -23,6 +23,8 @@ public class ContactCanceller : BackgroundService
     {
         while (true)
         {
+            _logger.LogInformation($"[{DateTime.Now}] Start Job: {nameof(ContactCanceller)}");
+
             using (var scope = _scopeFactory.CreateScope())
             {
                 _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
@@ -40,6 +42,8 @@ public class ContactCanceller : BackgroundService
                     await Task.Delay(TimeSpan.FromMinutes(10));
                 }
             }
+
+            _logger.LogInformation($"[{DateTime.Now}] End Job: {nameof(ContactCanceller)}");
         }
     }
     protected async Task DoWork()

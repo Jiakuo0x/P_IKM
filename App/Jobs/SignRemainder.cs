@@ -22,7 +22,9 @@ public class SignRemainder : BackgroundService
     {
         while (true)
         {
-            using(var scope = _scopeFactory.CreateScope())
+            _logger.LogInformation($"[{DateTime.Now}] Start Job: {nameof(SignRemainder)}");
+
+            using (var scope = _scopeFactory.CreateScope())
             {
                 _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
                 _bestSign = scope.ServiceProvider.GetRequiredService<BestSignService>();
@@ -39,6 +41,8 @@ public class SignRemainder : BackgroundService
                     await Task.Delay(TimeSpan.FromDays(1));
                 }
             }
+
+            _logger.LogInformation($"[{DateTime.Now}] End Job: {nameof(SignRemainder)}");
         }
     }
 

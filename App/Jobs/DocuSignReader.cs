@@ -22,7 +22,9 @@ public class DocuSignReader : BackgroundService
     {
         while (true)
         {
-            using(var scope = _scopeFactory.CreateScope())
+            _logger.LogInformation($"[{DateTime.Now}] Start Job: {nameof(DocuSignReader)}");
+
+            using (var scope = _scopeFactory.CreateScope())
             {
                 _docuSignService = scope.ServiceProvider.GetRequiredService<DocuSignService>();
                 _taskService = scope.ServiceProvider.GetRequiredService<TaskService>();
@@ -39,6 +41,8 @@ public class DocuSignReader : BackgroundService
                     await Task.Delay(TimeSpan.FromMinutes(10));
                 }
             }
+
+            _logger.LogInformation($"[{DateTime.Now}] End Job: {nameof(DocuSignReader)}");
         }
     }
 
