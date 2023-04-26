@@ -92,6 +92,7 @@ public class EmailSender : BackgroundService
             }
 
             _taskService.ChangeStep(task.Id, TaskStep.Completed);
+            await _docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The process has failed.");
             await _docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, sb.ToString());
         }
     }

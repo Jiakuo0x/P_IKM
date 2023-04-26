@@ -54,7 +54,7 @@ public class DocuSignService
         {
             customField.Value = $"{comment} - [{DateTime.Now:g}]";
         }
-        await envelopesApi.UpdateCustomFieldsAsync(_options.Value.AccountId, envelopeId, envelope.CustomFields);
+        var result = await envelopesApi.UpdateCustomFieldsAsync(_options.Value.AccountId, envelopeId, envelope.CustomFields);
     }
 
     public async Task<EnvelopeFormData> GetEnvelopeFormDataAsync(string envelopeId)
