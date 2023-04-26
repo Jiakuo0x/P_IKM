@@ -34,4 +34,9 @@ public class Configuration
     /// The email sender name
     /// </summary>
     public string SenderName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Email address of the administrator who is synchronized notified
+    /// </summary>
+    public string NotificationAdminEmail { get; set; } = string.Empty;
 }

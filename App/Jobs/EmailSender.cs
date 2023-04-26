@@ -82,6 +82,9 @@ public class EmailSender : BackgroundService
             if (firstSigner != null)
             {
                 _emailService.SendEmail(firstSigner.Email, "Your contract is failed", sb.ToString());
+                var adminEmail = _emailService.NotificationAdminEmail();
+                if (adminEmail != null)
+                    _emailService.SendEmail(adminEmail, "There is a contract that has failed", sb.ToString());
             }
             else
             {

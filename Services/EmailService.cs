@@ -32,4 +32,9 @@ public class EmailService
             client.Disconnect(true);
         }
     }
+
+    public string? NotificationAdminEmail()
+    {
+        return string.IsNullOrWhiteSpace(_options.Value.NotificationAdminEmail) ? null : _options.Value.NotificationAdminEmail;
+    }
 }
