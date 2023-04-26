@@ -10,6 +10,9 @@ using Newtonsoft.Json;
 
 namespace Services;
 
+/// <summary>
+/// BestSign service
+/// </summary>
 public class BestSignService
 {
     private readonly IOptions<Configuration> _options;
@@ -24,6 +27,14 @@ public class BestSignService
         _tokenManager = tokenManager;
         _keyVaultManager = keyVaultManager;
     }
+
+    /// <summary>
+    /// Generate signature for an HTTP request
+    /// </summary>
+    /// <param name="client">Http request client</param>
+    /// <param name="requestUri">Http request url</param>
+    /// <param name="requestBody">Http request body</param>
+    /// <returns>Task of the function</returns>
     public async Task GenerateSignature(HttpClient client, string requestUri, object? requestBody = null)
     {
         string timestamp = DateTimeOffset.Now.ToUnixTimeSeconds().ToString();
