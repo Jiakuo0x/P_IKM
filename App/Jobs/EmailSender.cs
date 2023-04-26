@@ -24,8 +24,6 @@ public class EmailSender : BackgroundService
     {
         while (true)
         {
-            _logger.LogInformation($"[{DateTime.Now}] Start Job: {nameof(EmailSender)}");
-
             using (var scope = _scopeFactory.CreateScope())
             {
                 _templateMappingService = scope.ServiceProvider.GetRequiredService<TemplateMappingService>();
@@ -45,8 +43,6 @@ public class EmailSender : BackgroundService
                     await Task.Delay(TimeSpan.FromSeconds(10));
                 }
             }
-
-            _logger.LogInformation($"[{DateTime.Now}] End Job: {nameof(EmailSender)}");
         }
     }
     protected async Task DoWork()
