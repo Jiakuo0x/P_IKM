@@ -4,6 +4,9 @@ using Services;
 
 namespace Jobs;
 
+/// <summary>
+/// The job is for reading envelopes in DocuSign and detecting any that need to be processed in the middleware system.
+/// </summary>
 public class DocuSignReader : BackgroundService
 {
     private readonly ILogger<DocuSignReader> _logger;

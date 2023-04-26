@@ -4,6 +4,9 @@ using System.IO.Compression;
 
 namespace Jobs;
 
+/// <summary>
+/// The job is for uploading documents from a Bestsign contract to a DocuSign envelope
+/// </summary>
 public class DocuSignContractUploader : BackgroundService
 {
     private readonly ILogger<EmailSender> _logger;

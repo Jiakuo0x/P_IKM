@@ -1,13 +1,13 @@
 ﻿using Database.Enums;
 using Database.Models;
-using DocuSign.eSign.Model;
-using Lib.DocuSign;
 using Services;
 using System.Data;
-using System.Text;
 
 namespace Jobs;
 
+/// <summary>
+/// The job is for creating a contract in Bestsign
+/// </summary>
 public class ContactCreator : BackgroundService
 {
     private readonly ILogger<ContactCreator> _logger;

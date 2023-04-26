@@ -1,11 +1,11 @@
-﻿using DocuSign.eSign.Model;
-using Database.Models;
-using Database.Enums;
-using Lib.BestSign.Dtos;
+﻿using Database.Enums;
 using Services;
 
 namespace Jobs;
 
+/// <summary>
+/// The job is for cancelling a contract in Bestsign
+/// </summary>
 public class ContactCanceller : BackgroundService
 {
     private readonly ILogger<DocuSignReader> _logger;
@@ -19,6 +19,7 @@ public class ContactCanceller : BackgroundService
         _logger = logger;
         _scopeFactory = scopeFactory;
     }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (true)

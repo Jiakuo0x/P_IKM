@@ -3,6 +3,9 @@ using Services;
 
 namespace Jobs;
 
+/// <summary>
+/// The job is for reminding signers who need to sign the contract in Bestsign
+/// </summary>
 public class SignRemainder : BackgroundService
 {
     private readonly ILogger<SignRemainder> _logger;

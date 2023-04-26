@@ -4,6 +4,9 @@ using Database.Enums;
 using Services;
 using System.Text;
 
+/// <summary>
+/// The job is for sending emails to relevant recipient for tasks that have errors
+/// </summary>
 public class EmailSender : BackgroundService
 {
     private readonly ILogger<EmailSender> _logger;
