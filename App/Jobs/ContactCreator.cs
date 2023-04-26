@@ -66,6 +66,8 @@ public class ContactCreator : BackgroundService
                 createContractModel.EnvelopeFormData = await _docuSign.GetEnvelopeFormDataAsync(task.DocuSignEnvelopeId);
                 createContractModel.TemplateMapping = MatchTemplateMapping(createContractModel);
 
+                // Check if the envelope requires an electronic signature. If electronic signature is not required, skip processing this envelope.
+                // This method also modify the step of the task
                 if (await IsEStampRequire(createContractModel) is false) continue;
 
                 var contract = await CreateContract(createContractModel);
@@ -79,20 +81,37 @@ public class ContactCreator : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Check if the envelope requires an electronic signature. If electronic signature is not required, skip processing this envelope.
+    /// This method also modify the step of the task.
+    /// </summary>
+    /// <param name="createContractModel">The model of creating contract</param>
+    /// <returns>Whether an electronic signature is required?</returns>
+    /// <exception cref="Exception">The form data 'eStamp' was not found in the envelope</exception>
     protected async Task<bool> IsEStampRequire(CreateContractModel createContractModel)
     {
         var eStampRequire = MatchParameterMapping(createContractModel, BestSignDataType.Tab_eStampRequire);
         if (eStampRequire is null) throw new Exception("System Error: Not found the FormData 'eStamp'.");
+
+        // If the value of from data 'eStamp' is not 'e-Stamp', then it is not required
         if (eStampRequire != "e-Stamp")
         {
             _taskService.LogInfo(createContractModel.Task.Id, "e-Stamp is not required.");
             _taskService.ChangeStep(createContractModel.Task.Id, TaskStep.Completed);
+
+            // Remove the listener to allow the envelope to continue to flow
             await _docuSign.RemoveListener(createContractModel.Envelope.EnvelopeId);
             return false;
         }
         return true;
     }
 
+    /// <summary>
+    /// Retrieve the template mapping configuration that match the envelope
+    /// </summary>
+    /// <param name="createContractModel">The model of creating contract</param>
+    /// <returns>Template mapping configuration</returns>
+    /// <exception cref="Exception">The custom field 'eStamp Type' was not found in the envelope</exception>
     protected TemplateMapping MatchTemplateMapping(CreateContractModel createContractModel)
     {
         var envelopeType = createContractModel.Envelope
@@ -104,12 +123,19 @@ public class ContactCreator : BackgroundService
         return templateMapping;
     }
 
+    /// <summary>
+    /// Create contract in Bestsign
+    /// </summary>
+    /// <param name="createContractModel">The model of creating contract</param>
+    /// <returns>The task of function</returns>
     protected async Task<CreateContractSuccessModel> CreateContract(CreateContractModel createContractModel)
     {
+        // Generate the object parameters required to create the contract
         var documents = await CreateContractDocuments(createContractModel);
         var sender = CreateContractSender(createContractModel);
         var roles = CreateContractRoles(createContractModel);
 
+        // Send an HTTP requeset to Bestsign to create the contract
         var apiResponse = await _bestSign.Post<CreateContractSuccessModel>($"/api/templates/send-contracts-sync-v2", new
         {
             sender = sender,
@@ -123,6 +149,12 @@ public class ContactCreator : BackgroundService
     }
 
     # region CreateContractDocuments
+    /// <summary>
+    /// Generate the document object parameters required to create the contract
+    /// </summary>
+    /// <param name="createContractModel">The model of creating contract</param>
+    /// <returns>The task of function</returns>
+    /// <exception cref="Exception">No file requiring a signature was found</exception>
     protected async Task<object> CreateContractDocuments(CreateContractModel createContractModel)
     {
         List<object> documents = new();
@@ -130,16 +162,23 @@ public class ContactCreator : BackgroundService
         List<object> attachments = new();
         List<object> privateLetterFileInfos = new();
 
+        // Iterate through the documents in the DocuSign envelope
         foreach (var document in createContractModel.Envelope.EnvelopeDocuments)
         {
+            // If the document name is 'Summary', then skip this document
             if (document.Name == "Summary") continue;
 
+            // Download the document file
             var docFile = await _docuSign.DownloadDocument(createContractModel.Envelope.EnvelopeId, document.DocumentId);
+
+            // Decrypt the document file
             var docContent = _documentService.DecryptDocument(docFile);
 
+            // Generate the locations in the document where signatures are required
             var appendingSignLables = await AppendingSignLables(createContractModel, document);
 
             var item = new Dictionary<string, object>();
+            // If there is no contract document yet, and the current document requires a signature, create the current document as the contract document
             if (mainDocument is null && appendingSignLables is not null)
             {
                 item.Add("documentId", createContractModel.TemplateMapping!.BestSignConfiguration.DocumentId);
@@ -153,6 +192,7 @@ public class ContactCreator : BackgroundService
                 item.Add("content", docContent);
                 mainDocument = item;
             }
+            // If there is already a contract document and the current document requires a signature, create the current document as a contract attachment
             else if (mainDocument is not null && appendingSignLables is not null)
             {
                 item.Add("fileName", ConvertDocumentFileName(document.Name));
@@ -160,6 +200,7 @@ public class ContactCreator : BackgroundService
                 item.Add("appendingSignLabels", appendingSignLables);
                 attachments.Add(item);
             }
+            // If the document does not require a signature, create temporary data that will become the contracting Party A's signing instructions
             else
             {
                 item.Add("fileName", ConvertDocumentFileName(document.Name));
@@ -172,11 +213,13 @@ public class ContactCreator : BackgroundService
         if(attachments.Count > 0)
             mainDocument.Add("attachments", attachments);
 
+        // Store the created signing instructions data temporarily for later processing
         createContractModel.PrivateLetterFileInfos = privateLetterFileInfos;
 
         documents.Add(mainDocument);
         return documents;
 
+        // Convert envelope document file name to contract document file name
         string ConvertDocumentFileName(string fileName)
         {
             var index = fileName.LastIndexOf(".");
@@ -185,15 +228,24 @@ public class ContactCreator : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Generate the locations in the document where signatures are required
+    /// </summary>
+    /// <param name="createContractModel">The model of creating contract</param>
+    /// <param name="document">Envelope document</param>
+    /// <returns>The task of the function</returns>
     protected async Task<List<Object>?> AppendingSignLables(CreateContractModel createContractModel, EnvelopeDocument document)
     {
         List<Object> result = new();
 
+        // Get document tabs
         var docTabs = await _docuSign.GetDocumentTabs(createContractModel.Envelope.EnvelopeId, document.DocumentId);
 
+        // Find the Party A stamp table name
         var aStampTabelName = MatchParameterMapping(createContractModel, BestSignDataType.AStampHere);
         if (!string.IsNullOrEmpty(aStampTabelName))
         {
+            // Find all the location that needs to be signed by Party A
             var aStamps = docTabs.SignHereTabs?.Where(i => i.TabLabel == aStampTabelName).ToList() ?? new();
             foreach (var aStamp in aStamps)
             {
@@ -209,9 +261,11 @@ public class ContactCreator : BackgroundService
             }
         }
 
+        // Find the Party B stamp table name
         var bStampTabelName = MatchParameterMapping(createContractModel, BestSignDataType.BStampHere);
         if (!string.IsNullOrEmpty(bStampTabelName))
         {
+            // Find all the location that needs to be signed by Party B
             var bStamps = docTabs.SignHereTabs?.Where(i => i.TabLabel == bStampTabelName).ToList() ?? new();
             foreach (var bStamp in bStamps)
             {
@@ -231,6 +285,12 @@ public class ContactCreator : BackgroundService
             return null;
         return result;
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="createContractModel"></param>
+    /// <returns></returns>
     protected object GetDocumentDescriptionFields(CreateContractModel createContractModel)
     {
         List<object> result = new List<object>();
