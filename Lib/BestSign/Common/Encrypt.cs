@@ -3,8 +3,17 @@ using System.Text;
 
 namespace Lib.BestSign.Common;
 
+/// <summary>
+/// Encrypt for Bestsign
+/// </summary>
 public static class Encrypt
 {
+    /// <summary>
+    /// Sign the string that needs to be signed using a private key string.
+    /// </summary>
+    /// <param name="signStr">String that needs to be signed</param>
+    /// <param name="privateKeyStr">Private key string of Bestsign</param>
+    /// <returns>Sign</returns>
     public static string SignStr(string signStr, string privateKeyStr)
     {
         SHA256 sha256 = SHA256.Create();
