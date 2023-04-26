@@ -54,11 +54,15 @@ public class SignRemainder : BackgroundService
         {
             try
             {
+                // If the contract has not been created in Bestsign, then skip this task
                 if (task.BestSignContractId == null)
                     continue;
+
+                // If the time elapsed since the last update of the task is within 15 days of the current time, then skip this task
                 if (task.LastUpdated.AddDays(15) < DateTime.Now)
                     continue;
 
+                // Call the Bestsign API to send a signing reminder
                 await _bestSign.Post<object>("/api/contracts/remind", new
                 {
                     contractId = task.BestSignContractId,

@@ -53,9 +53,11 @@ public class ContactCanceller : BackgroundService
         {
             try
             {
+                // If the contract has not been created in Bestsign, then cancel the creation
                 if(task.BestSignContractId == null || string.IsNullOrEmpty(task.BestSignContractId))
                     _taskService.ChangeStep(task.Id, TaskStep.ContractCancelled);
 
+                // Send an API request to cancel the contract related to Bestsign
                 var apiResponse = await _bestSign.Post<object>($"/api/contracts/{task.BestSignContractId}/revoke", new
                 {
                     revokeReason = "The system has cancelled the contract because the relevant envelope of DocuSign has been cancelled",

@@ -69,6 +69,7 @@ public class EmailSender : BackgroundService
             sb.AppendLine("Please contact us for more information");
             sb.AppendLine("====================================");
 
+            // Appending Bestsign form data to the email information
             var templateMapping = MatchTemplateMapping(envelope);
             var appendingMappings = templateMapping.ParameterMappings.Where(i => i.BestSignDataType == BestSignDataType.DescriptionFields).ToList();
             foreach (var appendingMapping in appendingMappings)
@@ -78,41 +79,68 @@ public class EmailSender : BackgroundService
             }
             sb.AppendLine("====================================");
 
+            // Appending task logs to the email information
             foreach (var log in taskLogs)
             {
                 sb.AppendLine($"[{log.Step}]: {log.Log} - {log.Created.ToLocalTime()}");
             }
 
+            // Retrieve the applicant
             var firstSigner = recipients.Signers.Select(i => new { i.Email, Order = int.Parse(i.RoutingOrder) }).MinBy(i => i.Order);
             if (firstSigner != null)
             {
+                // Send an email notification to the applicant
                 _emailService.SendEmail(firstSigner.Email, "Your contract is failed", sb.ToString());
+
+                // Retrieve the admin email information from the configuration file
                 var adminEmail = _emailService.NotificationAdminEmail();
+
+                // If the admin email address is found, then send an email to the admin email address
                 if (adminEmail != null)
                     _emailService.SendEmail(adminEmail, "There is a contract that has failed", sb.ToString());
             }
+            // If the applicant cannot be found, then record an error message
             else
             {
                 _taskService.LogError(task.Id, "Failed to send email notification. - Signer not found.");
             }
 
             _taskService.ChangeStep(task.Id, TaskStep.Completed);
+
+            // Update the custom field of envelope
             await _docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The process has failed.");
+
+            // Voided the envelope
             await _docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, sb.ToString());
         }
     }
 
+    /// <summary>
+    /// Match the template mapping configuration associated with the envelope
+    /// </summary>
+    /// <param name="envelope">Envelope</param>
+    /// <returns>Mapping configuration</returns>
+    /// <exception cref="Exception">Thrown when the custom field 'eStamp Type' is not found in the envelope</exception>
     protected TemplateMapping MatchTemplateMapping(Envelope envelope)
     {
+        // Find the value of 'eStamp Type' custome field
         var envelopeType = envelope
             .CustomFields.ListCustomFields.SingleOrDefault(i => i.Name == "eStamp Type");
         if (envelopeType == null) throw new Exception("System Error: Not found the custom field 'eStamp Type'.");
 
+        // retrieve the template mapping configuration based on the value of 'eStamp Type'
         var templateMapping = _templateMappingService.GetMappingByDocuSignId(envelopeType.Value);
 
         return templateMapping;
     }
 
+    /// <summary>
+    /// Match the value mapped to the relevant source data based on the data source
+    /// </summary>
+    /// <param name="mapping">Parameter mapping setting</param>
+    /// <param name="envelope">Envelope</param>
+    /// <param name="envelopeFormData">Envelope form data</param>
+    /// <returns></returns>
     protected string? MatchParameterMapping(ParameterMapping mapping, Envelope envelope, EnvelopeFormData envelopeFormData)
     {
         if (mapping.DocuSignDataType == DocuSignDataType.FormData_Value)
