@@ -36,6 +36,11 @@ public class OperationCompleteDto
     public string OperationType { get; set; } = null!;
 
     /// <summary>
+    /// The operation status
+    /// </summary>
+    public string? OperationStatus {  get; set; }
+
+    /// <summary>
     /// The sign type of the operation
     /// </summary>
     public string SignType { get; set; } = null!;

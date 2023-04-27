@@ -1,4 +1,5 @@
 using App.Dtos;
+using App.Dtos.BestSignCallbackDtos;
 using Database.Enums;
 using Dtos.BestSignCallbackDto;
 using Services;
@@ -72,8 +73,27 @@ public class BestsignController : ControllerBase
                 // Record the task log
                 taskService.LogInfo(task.Id, $"Contract signed by {result.UserAccount} - Contract signing");
 
-                // Update the custom field of DocuSign envelope
-                docuSignService.UpdateComment(task.DocuSignEnvelopeId, $"Contract signed by {result.UserAccount} - Contract signing").GetAwaiter().GetResult();
+                if(result.OperationStatus == "SIGN_SUCCEED")
+                {
+                    // Update the custom field of DocuSign envelope
+                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, $"Contract signed by {result.UserAccount} - Contract signing").GetAwaiter().GetResult();
+                }
+                else if(result.OperationStatus == "SIGN_FAILED")
+                {
+                    taskService.LogInfo(task.Id, $"The contract signing has failed by: {result.UserAccount} - {result.EnterpriseName}");
+                    taskService.ChangeStep(task.Id, TaskStep.Failed);
+                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract signing has failed.").GetAwaiter().GetResult();
+                }
+                else if(result.OperationStatus == "REJECT")
+                {
+                    taskService.LogInfo(task.Id, $"The contract has been declined by: {result.UserAccount} - {result.EnterpriseName}");
+                    taskService.ChangeStep(task.Id, TaskStep.Failed);
+                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has been declined.").GetAwaiter().GetResult();
+                }
+                else
+                {
+                    taskService.LogInfo(task.Id, $"The signing status of the unprocessed Bestsign signers: {result.OperationStatus}");
+                }
             }
         }
         // Handing the situation that contract complete
@@ -112,13 +132,34 @@ public class BestsignController : ControllerBase
             if (task is not null)
             {
                 // Record the task log
-                taskService.LogInfo(task.Id, "The contract has expired");
+                taskService.LogInfo(task.Id, "The contract has expired.");
 
                 // Update the task step
                 taskService.ChangeStep(task.Id, TaskStep.Failed);
 
                 // Update the custom field of DocuSign envelope
                 docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has expired").GetAwaiter().GetResult();
+            }
+        }
+        // Handing the situation that contract revoke
+        else if (dto.Type == "CONTRACT_REVOKE")
+        {
+            ContractRevokeDto result = JsonConvert.DeserializeObject<ContractRevokeDto>(dto.ResponseData!.ToString()!)!;
+
+            // Matching the task in the database 
+            var task = taskService.GetTaskByBestSignContractId(result.ContractId);
+
+            // If the match is successful
+            if (task is not null)
+            {
+                // Record the task log
+                taskService.LogInfo(task.Id, $"The contract has been revoked. Reason: {result.RevokeReason} Revoke by: {result.UserAccount} - {result.EnterpriseName}");
+
+                // Update the task step
+                taskService.ChangeStep(task.Id, TaskStep.Failed);
+
+                // Update the custom field of DocuSign envelope
+                docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has been revoked.").GetAwaiter().GetResult();
             }
         }
 
