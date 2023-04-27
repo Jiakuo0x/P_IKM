@@ -106,12 +106,19 @@ public class EmailSender : BackgroundService
             }
 
             _taskService.ChangeStep(task.Id, TaskStep.Completed);
+            
+            try
+            {
+                // Update the custom field of envelope
+                await _docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The process has failed.");
 
-            // Update the custom field of envelope
-            await _docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The process has failed.");
-
-            // Voided the envelope
-            await _docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, sb.ToString());
+                // Voided the envelope
+                await _docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, sb.ToString());
+            }
+            catch(Exception ex)
+            {
+                _taskService.LogError(task.Id, ex.Message);
+            }
         }
     }
 
