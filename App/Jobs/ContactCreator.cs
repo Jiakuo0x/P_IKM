@@ -312,9 +312,9 @@ public class ContactCreator : BackgroundService
     /// <summary>
     /// Convert the x-coordinate of DocuSign to the x-coordinate of Bestsign
     /// </summary>
-    /// <param name="xPosition">X-coordinate</param>
+    /// <param name="xPosition">X-coordinate in DocuSign</param>
     /// <param name="width">Width of page</param>
-    /// <returns></returns>
+    /// <returns>X-coordinate in Bestsign</returns>
     protected double GetXPosition(string xPosition, string width)
     {
         var x = double.Parse(xPosition) / double.Parse(width) - 0.1;
@@ -326,9 +326,9 @@ public class ContactCreator : BackgroundService
     /// <summary>
     /// Convert the y-coordinate of DocuSign to the y-coordinate of Bestsign
     /// </summary>
-    /// <param name="yPosition">Y-coordinate</param>
+    /// <param name="yPosition">Y-coordinate in DocuSign</param>
     /// <param name="height">Height of page</param>
-    /// <returns></returns>
+    /// <returns>Y-coordinate in Bestsign</returns>
     protected double GetYPosition(string yPosition, string height)
     {
         var y = 1 - (double.Parse(yPosition) / double.Parse(height)) - 0.1;
