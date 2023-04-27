@@ -59,36 +59,39 @@ public class EmailSender : BackgroundService
             var envelopeFormData = await _docuSignService.GetEnvelopeFormDataAsync(task.DocuSignEnvelopeId);
             var recipients = envelope.Recipients;
 
-            var taskLogs = _taskService.GetTaskLogs(task.Id);
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Your contract is failed");
-            sb.AppendLine("Contract Info:");
-            sb.AppendLine("DocuSign Envelope Id: " + task.DocuSignEnvelopeId);
-            sb.AppendLine("BestSign Contract Id:" + task.BestSignContractId);
-            sb.AppendLine("System Task Id: " + task.Id);
-            sb.AppendLine("Please contact us for more information");
-            sb.AppendLine("====================================");
-
-            // Appending Bestsign form data to the email information
-            var templateMapping = MatchTemplateMapping(envelope);
-            var appendingMappings = templateMapping.ParameterMappings.Where(i => i.BestSignDataType == BestSignDataType.DescriptionFields).ToList();
-            foreach (var appendingMapping in appendingMappings)
-            {
-                var value = MatchParameterMapping(appendingMapping, envelope, envelopeFormData);
-                sb.AppendLine($"{appendingMapping.BestSignDataName}:\t{value}");
-            }
-            sb.AppendLine("====================================");
-
-            // Appending task logs to the email information
-            foreach (var log in taskLogs)
-            {
-                sb.AppendLine($"[{log.Step}]: {log.Log} - {log.Created.ToLocalTime()}");
-            }
-
+            
             // Retrieve the applicant
-            var firstSigner = recipients.Signers.Select(i => new { i.Email, Order = int.Parse(i.RoutingOrder) }).MinBy(i => i.Order);
+            var firstSigner = recipients.Signers.Select(i => new { i.Email, Order = int.Parse(i.RoutingOrder), i.Name }).MinBy(i => i.Order);
             if (firstSigner != null)
             {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"Hi {firstSigner.Name}");
+                sb.AppendLine();
+                sb.AppendLine("Your documents are failed to get e-stamped. Please refer to the details of the envelope and error message below. Also you are able to contact ISCN_DocuSignInteg_Admin@inter.ikea.com for help.");
+                sb.AppendLine();
+                sb.AppendLine("Contract Info:");
+                sb.AppendLine("DocuSign Envelope Id: " + task.DocuSignEnvelopeId);
+                sb.AppendLine("BestSign Contract Id:" + task.BestSignContractId);
+                sb.AppendLine("System Task Id: " + task.Id);
+                sb.AppendLine("====================================");
+
+                // Appending Bestsign form data to the email information
+                var templateMapping = MatchTemplateMapping(envelope);
+                var appendingMappings = templateMapping.ParameterMappings.Where(i => i.BestSignDataType == BestSignDataType.DescriptionFields).ToList();
+                foreach (var appendingMapping in appendingMappings)
+                {
+                    var value = MatchParameterMapping(appendingMapping, envelope, envelopeFormData);
+                    sb.AppendLine($"{appendingMapping.BestSignDataName}:\t{value}");
+                }
+                sb.AppendLine("====================================");
+
+                var taskLogs = _taskService.GetTaskLogs(task.Id);
+                // Appending task logs to the email information
+                foreach (var log in taskLogs)
+                {
+                    sb.AppendLine($"[{log.Step}]: {log.Log} - {log.Created.ToLocalTime()}");
+                }
+
                 // Send an email notification to the applicant
                 _emailService.SendEmail(firstSigner.Email, "Your contract is failed", sb.ToString());
 
@@ -111,7 +114,7 @@ public class EmailSender : BackgroundService
             await _docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The process has failed.");
 
             // Voided the envelope
-            await _docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, sb.ToString());
+            await _docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, "Your documents are failed to get e-stamped.");
         }
     }
 
