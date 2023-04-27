@@ -49,7 +49,7 @@ public class SignRemainder : BackgroundService
 
     protected async Task DoWork()
     {
-        var tasks = _taskService.GetTasksByStep(TaskStep.ContractCancelled);
+        var tasks = _taskService.GetTasksByStep(TaskStep.ContractCreated);
         foreach (var task in tasks)
         {
             try
