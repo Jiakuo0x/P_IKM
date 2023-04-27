@@ -318,7 +318,7 @@ public class ContactCreator : BackgroundService
     protected double GetXPosition(string xPosition, string width)
     {
         var x = double.Parse(xPosition) / double.Parse(width) - 0.1;
-        if (x < 0.1) return 0.1;
+        if (x < 0) return 0;
         if (x > 0.9) return 0.9;
         return x;
     }
@@ -332,7 +332,7 @@ public class ContactCreator : BackgroundService
     protected double GetYPosition(string yPosition, string height)
     {
         var y = 1 - (double.Parse(yPosition) / double.Parse(height)) - 0.1;
-        if(y < 0.1) return 0.1;
+        if(y < 0) return 0;
         if (y > 0.9) return 0.9;
         return y;
     }
