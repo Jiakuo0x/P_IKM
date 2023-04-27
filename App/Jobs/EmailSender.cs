@@ -70,9 +70,9 @@ public class EmailSender : BackgroundService
                 sb.AppendLine("Your documents are failed to get e-stamped. Please refer to the details of the envelope and error message below. Also you are able to contact ISCN_DocuSignInteg_Admin@inter.ikea.com for help.");
                 sb.AppendLine();
                 sb.AppendLine("Contract Info:");
-                sb.AppendLine("DocuSign Envelope Id: " + task.DocuSignEnvelopeId);
-                sb.AppendLine("BestSign Contract Id:" + task.BestSignContractId);
-                sb.AppendLine("System Task Id: " + task.Id);
+                sb.AppendLine("DocuSign Envelope Id:\t" + task.DocuSignEnvelopeId);
+                sb.AppendLine("BestSign Contract Id:\t" + task.BestSignContractId);
+                sb.AppendLine("System Task Id:\t" + task.Id);
                 sb.AppendLine("====================================");
 
                 // Appending Bestsign form data to the email information
