@@ -287,9 +287,9 @@ public class ContactCreator : BackgroundService
     }
 
     /// <summary>
-    /// 
+    /// Generate the custom description of the document
     /// </summary>
-    /// <param name="createContractModel"></param>
+    /// <param name="createContractModel">The model of the creating contract</param>
     /// <returns></returns>
     protected object GetDocumentDescriptionFields(CreateContractModel createContractModel)
     {
@@ -297,6 +297,8 @@ public class ContactCreator : BackgroundService
 
         var parameterMappings = createContractModel.TemplateMapping?.ParameterMappings
             .Where(i => i.BestSignDataType == BestSignDataType.DescriptionFields) ?? new List<ParameterMapping>();
+
+        // Iterate through the mapping configuration
         foreach (var parameterMapping in parameterMappings)
         {
             Dictionary<string, string> item = new Dictionary<string, string>();
@@ -306,12 +308,25 @@ public class ContactCreator : BackgroundService
         }
         return result;
     }
+
+    /// <summary>
+    /// Convert the x-coordinate of DocuSign to the x-coordinate of Bestsign
+    /// </summary>
+    /// <param name="xPosition">X-coordinate</param>
+    /// <param name="width">Width of page</param>
+    /// <returns></returns>
     protected double GetXPosition(string xPosition, string width)
     {
         var x = double.Parse(xPosition) / double.Parse(width) - 0.1;
         return x;
     }
 
+    /// <summary>
+    /// Convert the y-coordinate of DocuSign to the y-coordinate of Bestsign
+    /// </summary>
+    /// <param name="yPosition">Y-coordinate</param>
+    /// <param name="height">Height of page</param>
+    /// <returns></returns>
     protected double GetYPosition(string yPosition, string height)
     {
         var y = 1 - (double.Parse(yPosition) / double.Parse(height)) - 0.1;
@@ -320,6 +335,12 @@ public class ContactCreator : BackgroundService
     #endregion
 
 
+    /// <summary>
+    /// Generate the object data of contract sender
+    /// </summary>
+    /// <param name="createContractModel">The model of the creating contract</param>
+    /// <returns>The object data</returns>
+    /// <exception cref="Exception">Account, enterprise name, or business line of sender not found</exception>
     protected object CreateContractSender(CreateContractModel createContractModel)
     {
         var account = MatchParameterMapping(createContractModel, BestSignDataType.SenderAccount);
@@ -341,6 +362,12 @@ public class ContactCreator : BackgroundService
         return result;
     }
 
+    /// <summary>
+    /// Generate the object data of contract roles
+    /// </summary>
+    /// <param name="createContractModel">The model of the creating contract</param>
+    /// <returns>The object data</returns>
+    /// <exception cref="Exception">Not found the information of Part A</exception>
     protected object CreateContractRoles(CreateContractModel createContractModel)
     {
         List<Object> result = new();
@@ -362,6 +389,8 @@ public class ContactCreator : BackgroundService
         roleA.Add("roleName", "IKEA");
         roleA.Add("receiverType", "SIGNER");
         roleA.Add("userType", "ENTERPRISE");
+
+        // If there are non-signed documents, attach them to the contracting Party A's signing instruction
         if (createContractModel.PrivateLetterFileInfos.Count > 0)
             roleA.Add("communicateInfo", new
             {
@@ -374,9 +403,11 @@ public class ContactCreator : BackgroundService
         var roleBAccount = MatchParameterMapping(createContractModel, BestSignDataType.RoleBAccount);
         var roleBCompanyName = MatchParameterMapping(createContractModel, BestSignDataType.RoleBCompanyName);
 
+        // If the Party B is configured in the template, add the Party B role
         if (!string.IsNullOrEmpty(roleBCompanyName))
         {
             Dictionary<string, object> roleB = new();
+            // If the Party B has account information configured, add it
             if (!string.IsNullOrEmpty(roleBAccount))
             {
                 roleB.Add("userInfo", new
@@ -385,6 +416,7 @@ public class ContactCreator : BackgroundService
                     enterpriseName = roleBCompanyName,
                 });
             }
+            // If there is no account information for the Party B in the form data, then create an agent signing 
             else
             {
                 roleB.Add("userInfo", new
@@ -405,6 +437,13 @@ public class ContactCreator : BackgroundService
 
         return result;
     }
+
+    /// <summary>
+    /// Match the value mapped to the parameter
+    /// </summary>
+    /// <param name="createContractModel">The model of the creating contract</param>
+    /// <param name="bestSignDataType">The type of The Bestsign data source</param>
+    /// <returns>Matching value</returns>
     protected string? MatchParameterMapping(CreateContractModel createContractModel, BestSignDataType bestSignDataType)
     {
         var mapping = createContractModel.TemplateMapping?.ParameterMappings
@@ -420,6 +459,13 @@ public class ContactCreator : BackgroundService
             return MatchParameterMapping(mapping, createContractModel);
     }
 
+    /// <summary>
+    /// Match the value mapped to the parameter
+    /// </summary>
+    /// <param name="mapping">The parameter mapping object</param>
+    /// <param name="createContractModel">The model of the creating contract</param>
+    /// <returns>Matching value</returns>
+    /// <exception cref="Exception">No matching value</exception>
     protected string MatchParameterMapping(ParameterMapping mapping, CreateContractModel createContractModel)
     {
         if (mapping.DocuSignDataType == DocuSignDataType.FormData_Value)
@@ -460,6 +506,7 @@ public class ContactCreator : BackgroundService
         {
             return createContractModel.Envelope.Sender.Email;
         }
+        // If it is a checkbob group, concatenate the selected checkboxes in the format of "aa;bb"
         else if(mapping.DocuSignDataType == DocuSignDataType.CheckboxGroup)
         {
             List<string> checkboxNames = new();
@@ -485,16 +532,44 @@ public class ContactCreator : BackgroundService
     }
 }
 
+/// <summary>
+/// The model of the creating contract
+/// </summary>
 public class CreateContractModel
 {
+    /// <summary>
+    /// The task of electronic signature
+    /// </summary>
     public ElectronicSignatureTask Task { get; set; } = null!;
+
+    /// <summary>
+    /// The configuration of the template mapping
+    /// </summary>
     public TemplateMapping? TemplateMapping { get; set; }
+
+    /// <summary>
+    /// The envelope of DocuSign
+    /// </summary>
     public Envelope Envelope { get; set; } = null!;
+
+    /// <summary>
+    /// The envelope form data of DocuSign envelope
+    /// </summary>
     public EnvelopeFormData EnvelopeFormData { get; set; } = null!;
+
+    /// <summary>
+    /// The temporary signing instruction list object stored here is to avoid wasting performance caused by repeated retrieve
+    /// </summary>
     public List<object> PrivateLetterFileInfos { get; set; } = null!;
 }
 
+/// <summary>
+/// The Bestsign callback model of creating contract successful
+/// </summary>
 public class CreateContractSuccessModel
 {
+    /// <summary>
+    /// The Bestsign contract ID
+    /// </summary>
     public string ContractId { get; set; } = null!;
 }
