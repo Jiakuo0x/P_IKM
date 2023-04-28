@@ -60,7 +60,7 @@ public class DocuSignReader : BackgroundService
             if (_docuSignService.EnvelopeIsPending(envelope) is false) continue;
 
             var listener = _docuSignService.GetListenerInfo(envelope);
-            // If listener role name is "WetInk", then delete all recipients after the listener
+            // If listener role name is "WetInk", then delete the listener and remove all the recipients after the listener
             if (listener.RoleName == "WetInk")
             {
                 try
