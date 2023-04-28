@@ -134,6 +134,22 @@ public class DocuSignService
     }
 
     /// <summary>
+    /// Get the currently configured recipient who is configured as a listener in the system
+    /// </summary>
+    /// <param name="envelopeId">Envelope of DocuSign</param>
+    /// <param name="recipient">Recipient</param>
+    public Signer GetListenerInfo(Envelope envelope)
+    {
+        var recipients = envelope.Recipients;
+        if (recipients is null) throw new Exception("The envelope has no recipients");
+
+        var listener = recipients.Signers.SingleOrDefault(i => i.Email == _options.Value.ListenEmail && i.RoutingOrder == recipients.CurrentRoutingOrder);
+        if (listener is null) throw new Exception("Not found the listener.");
+
+        return listener;
+    }
+
+    /// <summary>
     /// Remove the recipient who is configured as a listener in the system
     /// </summary>
     /// <param name="envelopeId">Envelope ID</param>
@@ -147,6 +163,23 @@ public class DocuSignService
         if (listener is null) return;
 
         var response = await envelopesApi.DeleteRecipientAsync(_options.Value.AccountId, envelopeId, listener.RecipientId);
+    }
+
+    /// <summary>
+    /// Remove the recipients in the envelope
+    /// </summary>
+    /// <param name="envelopeId">Envelope ID</param>
+    /// <returns>The task of the function</returns>
+    public async Task RemoveRecipients(string envelopeId, List<Signer>? signers, List<Editor>? editors)
+    {
+        var client = _clientManager.GetClient();
+        EnvelopesApi envelopesApi = new(client);
+
+        Recipients recipients = new();
+        if (signers is not null && signers.Count > 0) recipients.Signers = signers;
+        if (editors is not null && editors.Count > 0) recipients.Editors = editors;
+
+        var response = await envelopesApi.DeleteRecipientsAsync(_options.Value.AccountId, envelopeId, recipients);
     }
 
     /// <summary>

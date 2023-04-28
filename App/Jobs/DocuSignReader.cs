@@ -59,39 +59,57 @@ public class DocuSignReader : BackgroundService
             // If the envelope is not in a pending state, the skip this envelope
             if (_docuSignService.EnvelopeIsPending(envelope) is false) continue;
 
-            try
+            var listener = _docuSignService.GetListenerInfo(envelope);
+            // If listener role name is "WetInk", then delete all recipients after the listener
+            if (listener.RoleName == "WetInk")
             {
-                // If the envelope status is "voided", first check if there are any related tasks in the database.
-                // Then, check if the current status of the task needs to be processed.
-                // Finally, change the task status, assign it to other tasks for processing, and record the status in the custom field of the envelope
-                if (envelope.Status == "voided")
+                try
                 {
-                    if (envelopesDic.ContainsKey(envelope.EnvelopeId) is false) continue;
-
-                    var taskStatus = envelopesDic[envelope.EnvelopeId].CurrentStep;
-                    if (taskStatus is TaskStep.Unknown) continue;
-                    if (taskStatus is TaskStep.ContractCancelling) continue;
-                    if (taskStatus is TaskStep.ContractCancelled) continue;
-                    if (taskStatus is TaskStep.ContractCancelled) continue;
-                    if (taskStatus is TaskStep.Failed) continue;
-                    if (taskStatus is TaskStep.Completed) continue;
-
-                    _taskService.ChangeStep(envelopesDic[envelope.EnvelopeId].Id, TaskStep.ContractCancelling);
-                    await _docuSignService.UpdateComment(envelope.EnvelopeId, "Waiting to revoke the contract.");
+                    var editors = envelope.Recipients.Editors.Where(i => int.Parse(i.RoutingOrder) >= int.Parse(listener.RoutingOrder)).ToList();
+                    var signers = envelope.Recipients.Signers.Where(i => int.Parse(i.RoutingOrder) >= int.Parse(listener.RoutingOrder)).ToList();
+                    await _docuSignService.RemoveRecipients(envelope.EnvelopeId, signers, editors);
                 }
-                // Check if the envelope needs to be processed. If so, create a task in the database and record the status in the custom field of the envelope
-                else
+                catch (Exception ex)
                 {
-                    if (envelopesDic.ContainsKey(envelope.EnvelopeId)) continue;
-                    _taskService.CreateTask(envelope.EnvelopeId);
-                    await _docuSignService.UpdateComment(envelope.EnvelopeId, "Waiting to create the contract.");
+                    _taskService.LogError(envelopesDic[envelope.EnvelopeId].Id, ex.Message);
                 }
             }
-            catch (Exception ex)
+            else
             {
-                if (envelopesDic.ContainsKey(envelope.EnvelopeId))
+                try
                 {
-                    _taskService.LogInfo(envelopesDic[envelope.EnvelopeId].Id, ex.Message);
+                    // If the envelope status is "voided", first check if there are any related tasks in the database.
+                    // Then, check if the current status of the task needs to be processed.
+                    // Finally, change the task status, assign it to other tasks for processing, and record the status in the custom field of the envelope
+                    if (envelope.Status == "voided")
+                    {
+                        if (envelopesDic.ContainsKey(envelope.EnvelopeId) is false) continue;
+
+                        var taskStatus = envelopesDic[envelope.EnvelopeId].CurrentStep;
+                        if (taskStatus is TaskStep.Unknown) continue;
+                        if (taskStatus is TaskStep.ContractCancelling) continue;
+                        if (taskStatus is TaskStep.ContractCancelled) continue;
+                        if (taskStatus is TaskStep.ContractCancelled) continue;
+                        if (taskStatus is TaskStep.Failed) continue;
+                        if (taskStatus is TaskStep.Completed) continue;
+
+                        _taskService.ChangeStep(envelopesDic[envelope.EnvelopeId].Id, TaskStep.ContractCancelling);
+                        await _docuSignService.UpdateComment(envelope.EnvelopeId, "Waiting to revoke the contract.");
+                    }
+                    // Check if the envelope needs to be processed. If so, create a task in the database and record the status in the custom field of the envelope
+                    else
+                    {
+                        if (envelopesDic.ContainsKey(envelope.EnvelopeId)) continue;
+                        _taskService.CreateTask(envelope.EnvelopeId);
+                        await _docuSignService.UpdateComment(envelope.EnvelopeId, "Waiting to create the contract.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (envelopesDic.ContainsKey(envelope.EnvelopeId))
+                    {
+                        _taskService.LogInfo(envelopesDic[envelope.EnvelopeId].Id, ex.Message);
+                    }
                 }
             }
         }
