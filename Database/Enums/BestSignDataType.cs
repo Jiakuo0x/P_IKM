@@ -59,9 +59,4 @@ public enum BestSignDataType
     /// The signing location of Party B
     /// </summary>
     BStampHere = 60,
-
-    /// <summary>
-    /// A mark indicating whether to use an electronic signature
-    /// </summary>
-    Tab_eStampRequire = 200,
 }

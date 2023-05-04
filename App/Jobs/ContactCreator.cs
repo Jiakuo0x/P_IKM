@@ -66,10 +66,6 @@ public class ContactCreator : BackgroundService
                 createContractModel.EnvelopeFormData = await _docuSign.GetEnvelopeFormDataAsync(task.DocuSignEnvelopeId);
                 createContractModel.TemplateMapping = MatchTemplateMapping(createContractModel);
 
-                // Check if the envelope requires an electronic signature. If electronic signature is not required, skip processing this envelope.
-                // This method also modify the step of the task
-                if (await IsEStampRequire(createContractModel) is false) continue;
-
                 var contract = await CreateContract(createContractModel);
 
                 _taskService.UpdateTaskContractId(task.Id, contract.ContractId);
@@ -79,31 +75,6 @@ public class ContactCreator : BackgroundService
                 _taskService.LogError(task.Id, ex.Message);
             }
         }
-    }
-
-    /// <summary>
-    /// Check if the envelope requires an electronic signature. If electronic signature is not required, skip processing this envelope.
-    /// This method also modify the step of the task.
-    /// </summary>
-    /// <param name="createContractModel">The model of creating contract</param>
-    /// <returns>Whether an electronic signature is required?</returns>
-    /// <exception cref="Exception">The form data 'eStamp' was not found in the envelope</exception>
-    protected async Task<bool> IsEStampRequire(CreateContractModel createContractModel)
-    {
-        var eStampRequire = MatchParameterMapping(createContractModel, BestSignDataType.Tab_eStampRequire);
-        if (eStampRequire is null) throw new Exception("System Error: Not found the FormData 'eStamp'.");
-
-        // If the value of from data 'eStamp' is not 'e-Stamp', then it is not required
-        if (eStampRequire != "e-Stamp")
-        {
-            _taskService.LogInfo(createContractModel.Task.Id, "e-Stamp is not required.");
-            _taskService.ChangeStep(createContractModel.Task.Id, TaskStep.Completed);
-
-            // Remove the listener to allow the envelope to continue to flow
-            await _docuSign.RemoveListener(createContractModel.Envelope.EnvelopeId);
-            return false;
-        }
-        return true;
     }
 
     /// <summary>
