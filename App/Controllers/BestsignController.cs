@@ -45,14 +45,22 @@ public class BestsignController : ControllerBase
             // If the match is successful
             if (task is not null)
             {
-                // Record the task log
-                taskService.LogInfo(task.Id, "Contract creation completed.");
+                if(task.CurrentStep == TaskStep.ContractCreating)
+                {
+                    // Record the task log
+                    taskService.LogInfo(task.Id, "Contract creation completed.");
 
-                // Update the task step
-                taskService.ChangeStep(task.Id, TaskStep.ContractCreated);
+                    // Update the task step
+                    taskService.ChangeStep(task.Id, TaskStep.ContractCreated);
 
-                // Update the custom field of DocuSign envelope
-                docuSignService.UpdateComment(task.DocuSignEnvelopeId, "Contract creation completed.").GetAwaiter().GetResult();
+                    // Update the custom field of DocuSign envelope
+                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, "Contract creation completed.").GetAwaiter().GetResult();
+                }
+                else
+                {
+                    // Record the task log
+                    taskService.LogInfo(task.Id, "Contract creation completed. But the contract status is not matching.");
+                }
             }
         }
         // Filter the old version that contract send result
@@ -70,29 +78,37 @@ public class BestsignController : ControllerBase
             // If the match is successful
             if (task is not null)
             {
-                // Record the task log
-                taskService.LogInfo(task.Id, $"Contract signed by {result.UserAccount} - Contract signing");
+                if(task.CurrentStep ==  TaskStep.ContractCreated)
+                {
+                    // Record the task log
+                    taskService.LogInfo(task.Id, $"Contract signed by {result.UserAccount} - Contract signing");
 
-                if(result.OperationStatus == "SIGN_SUCCEED")
-                {
-                    // Update the custom field of DocuSign envelope
-                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, $"Contract signed by {result.UserAccount} - Contract signing").GetAwaiter().GetResult();
-                }
-                else if(result.OperationStatus == "SIGN_FAILED")
-                {
-                    taskService.LogInfo(task.Id, $"The contract signing has failed by: {result.UserAccount} - {result.EnterpriseName}");
-                    taskService.ChangeStep(task.Id, TaskStep.Failed);
-                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract signing has failed.").GetAwaiter().GetResult();
-                }
-                else if(result.OperationStatus == "REJECT")
-                {
-                    taskService.LogInfo(task.Id, $"The contract has been declined by: {result.UserAccount} - {result.EnterpriseName}");
-                    taskService.ChangeStep(task.Id, TaskStep.Failed);
-                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has been declined.").GetAwaiter().GetResult();
+                    if (result.OperationStatus == "SIGN_SUCCEED")
+                    {
+                        // Update the custom field of DocuSign envelope
+                        docuSignService.UpdateComment(task.DocuSignEnvelopeId, $"Contract signed by {result.UserAccount} - Contract signing").GetAwaiter().GetResult();
+                    }
+                    else if (result.OperationStatus == "SIGN_FAILED")
+                    {
+                        taskService.LogInfo(task.Id, $"The contract signing has failed by: {result.UserAccount} - {result.EnterpriseName}");
+                        taskService.ChangeStep(task.Id, TaskStep.Failed);
+                        docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract signing has failed.").GetAwaiter().GetResult();
+                    }
+                    else if (result.OperationStatus == "REJECT")
+                    {
+                        taskService.LogInfo(task.Id, $"The contract has been declined by: {result.UserAccount} - {result.EnterpriseName}");
+                        taskService.ChangeStep(task.Id, TaskStep.Failed);
+                        docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has been declined.").GetAwaiter().GetResult();
+                    }
+                    else
+                    {
+                        taskService.LogInfo(task.Id, $"The signing status of the unprocessed Bestsign signers: {result.OperationStatus}");
+                    }
                 }
                 else
                 {
-                    taskService.LogInfo(task.Id, $"The signing status of the unprocessed Bestsign signers: {result.OperationStatus}");
+                    // Record the task log
+                    taskService.LogInfo(task.Id, $"Contract signed by {result.UserAccount} - Contract signing. But the contract status is not matching.");
                 }
             }
         }
@@ -109,14 +125,22 @@ public class BestsignController : ControllerBase
                 // If the match is successful
                 if (task is not null)
                 {
-                    // Record the task log 
-                    taskService.LogInfo(task.Id, "Contract signing completed");
+                    if(task.CurrentStep == TaskStep.ContractCreated)
+                    {
+                        // Record the task log 
+                        taskService.LogInfo(task.Id, "Contract signing completed");
 
-                    // Update the task step
-                    taskService.ChangeStep(task.Id, TaskStep.ContractCompleted);
+                        // Update the task step
+                        taskService.ChangeStep(task.Id, TaskStep.ContractCompleted);
 
-                    // Update the custom field of DocuSign envelope
-                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, "Contract signing completed").GetAwaiter().GetResult();
+                        // Update the custom field of DocuSign envelope
+                        docuSignService.UpdateComment(task.DocuSignEnvelopeId, "Contract signing completed").GetAwaiter().GetResult();
+                    }
+                    else
+                    {
+                        // Record the task log
+                        taskService.LogInfo(task.Id, $"Contract signing completed. But the contract status is not matching.");
+                    }
                 }
             }
         }
@@ -131,14 +155,22 @@ public class BestsignController : ControllerBase
             // If the match is successful
             if (task is not null)
             {
-                // Record the task log
-                taskService.LogInfo(task.Id, "The contract has expired.");
+                if(task.CurrentStep == TaskStep.ContractCreated)
+                {
+                    // Record the task log
+                    taskService.LogInfo(task.Id, "The contract has expired.");
 
-                // Update the task step
-                taskService.ChangeStep(task.Id, TaskStep.Failed);
+                    // Update the task step
+                    taskService.ChangeStep(task.Id, TaskStep.Failed);
 
-                // Update the custom field of DocuSign envelope
-                docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has expired").GetAwaiter().GetResult();
+                    // Update the custom field of DocuSign envelope
+                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has expired").GetAwaiter().GetResult();
+                }
+                else
+                {
+                    // Record the task log
+                    taskService.LogInfo(task.Id, $"The contract has expired. But the contract status is not matching.");
+                }
             }
         }
         // Handing the situation that contract revoke
@@ -152,14 +184,22 @@ public class BestsignController : ControllerBase
             // If the match is successful
             if (task is not null)
             {
-                // Record the task log
-                taskService.LogInfo(task.Id, $"The contract has been revoked. Reason: {result.RevokeReason} Revoke by: {result.UserAccount} - {result.EnterpriseName}");
+                if(task.CurrentStep == TaskStep.ContractCreated)
+                {
+                    // Record the task log
+                    taskService.LogInfo(task.Id, $"The contract has been revoked. Reason: {result.RevokeReason} Revoke by: {result.UserAccount} - {result.EnterpriseName}");
 
-                // Update the task step
-                taskService.ChangeStep(task.Id, TaskStep.Failed);
+                    // Update the task step
+                    taskService.ChangeStep(task.Id, TaskStep.Failed);
 
-                // Update the custom field of DocuSign envelope
-                docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has been revoked.").GetAwaiter().GetResult();
+                    // Update the custom field of DocuSign envelope
+                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has been revoked.").GetAwaiter().GetResult();
+                }
+                else
+                {
+                    // Record the task log
+                    taskService.LogInfo(task.Id, $"The contract has been revoked. But the contract status is not matching.");
+                }
             }
         }
 
