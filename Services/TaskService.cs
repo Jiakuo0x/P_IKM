@@ -162,6 +162,8 @@ public class TaskService
     {
         var logs = _db.Set<ElectronicSignatureTaskLog>()
             .Where(i => i.TaskId == taskId)
+            .OrderBy(i => i.Created)
+            .ThenBy(i => i.Id)
             .AsNoTracking()
             .ToList();
         return logs;
