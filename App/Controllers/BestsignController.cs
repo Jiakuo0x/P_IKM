@@ -28,7 +28,7 @@ public class BestsignController : ControllerBase
     /// <returns></returns>
     [HttpPost]
     [Route("listen")]
-    public object Listen([FromServices] TaskService taskService, [FromServices] DocuSignService docuSignService,
+    public async object Listen([FromServices] TaskService taskService, [FromServices] DocuSignService docuSignService,
         [FromBody] BestSignCallbackDto dto)
     {
         // Record the callback log
@@ -91,14 +91,16 @@ public class BestsignController : ControllerBase
                     else if (result.OperationStatus == "SIGN_FAILED")
                     {
                         taskService.LogInfo(task.Id, $"The contract signing has failed by: {result.UserAccount} - {result.EnterpriseName}");
-                        taskService.ChangeStep(task.Id, TaskStep.Failed);
-                        docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract signing has failed.").GetAwaiter().GetResult();
+                        taskService.ChangeStep(task.Id, TaskStep.Completed);
+                        await docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, 
+                            $"The contract signing has failed by: {result.UserAccount} - {result.EnterpriseName} [{DateTime.Now}]");
                     }
                     else if (result.OperationStatus == "REJECT")
                     {
                         taskService.LogInfo(task.Id, $"The contract has been declined by: {result.UserAccount} - {result.EnterpriseName}");
-                        taskService.ChangeStep(task.Id, TaskStep.Failed);
-                        docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has been declined.").GetAwaiter().GetResult();
+                        taskService.ChangeStep(task.Id, TaskStep.Completed);
+                        await docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId,
+                            $"The contract has been declined by: {result.UserAccount} - {result.EnterpriseName} [{DateTime.Now}]");
                     }
                     else
                     {
@@ -161,10 +163,10 @@ public class BestsignController : ControllerBase
                     taskService.LogInfo(task.Id, "The contract has expired.");
 
                     // Update the task step
-                    taskService.ChangeStep(task.Id, TaskStep.Failed);
+                    taskService.ChangeStep(task.Id, TaskStep.Completed);
 
-                    // Update the custom field of DocuSign envelope
-                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has expired").GetAwaiter().GetResult();
+                    await docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId,
+                            $"The contract has expired. [{DateTime.Now}]");
                 }
                 else
                 {
@@ -190,10 +192,10 @@ public class BestsignController : ControllerBase
                     taskService.LogInfo(task.Id, $"The contract has been revoked. Reason: {result.RevokeReason} Revoke by: {result.UserAccount} - {result.EnterpriseName}");
 
                     // Update the task step
-                    taskService.ChangeStep(task.Id, TaskStep.Failed);
+                    taskService.ChangeStep(task.Id, TaskStep.Completed);
 
-                    // Update the custom field of DocuSign envelope
-                    docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The contract has been revoked.").GetAwaiter().GetResult();
+                    await docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId,
+                            $"The contract has been revoked. Reason: {result.RevokeReason} Revoke by: {result.UserAccount} - {result.EnterpriseName} [{DateTime.Now}]");
                 }
                 else
                 {
