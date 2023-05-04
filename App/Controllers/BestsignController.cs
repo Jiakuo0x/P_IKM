@@ -28,7 +28,7 @@ public class BestsignController : ControllerBase
     /// <returns></returns>
     [HttpPost]
     [Route("listen")]
-    public async object Listen([FromServices] TaskService taskService, [FromServices] DocuSignService docuSignService,
+    public async Task<object> Listen([FromServices] TaskService taskService, [FromServices] DocuSignService docuSignService,
         [FromBody] BestSignCallbackDto dto)
     {
         // Record the callback log
