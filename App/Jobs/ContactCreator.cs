@@ -446,28 +446,28 @@ public class ContactCreator : BackgroundService
         if (mapping.DocuSignDataType == DocuSignDataType.FormData_Value)
         {
             var formData = createContractModel.EnvelopeFormData.FormData;
-            var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            var formDataItem = formData.FirstOrDefault(i => i.Name.ToUpper() == mapping.DocuSignDataName.ToUpper());
             if (formDataItem is null) throw new Exception($"Not found the FormDataItem: {mapping.DocuSignDataName}.");
             return formDataItem.Value;
         }
         else if (mapping.DocuSignDataType == DocuSignDataType.FormData_ListSelectedValue)
         {
             var formData = createContractModel.EnvelopeFormData.FormData;
-            var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            var formDataItem = formData.FirstOrDefault(i => i.Name.ToUpper() == mapping.DocuSignDataName.ToUpper());
             if (formDataItem is null) throw new Exception($"Not found the FormDataItem: {mapping.DocuSignDataName}.");
             return formDataItem.ListSelectedValue;
         }
         else if (mapping.DocuSignDataType == DocuSignDataType.TextCustomField)
         {
             var customFields = createContractModel.Envelope.CustomFields.TextCustomFields;
-            var customField = customFields.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            var customField = customFields.FirstOrDefault(i => i.Name.ToUpper() == mapping.DocuSignDataName.ToUpper());
             if (customField is null) throw new Exception($"Not found the TextCustomField: {mapping.DocuSignDataName}.");
             return customField.Value;
         }
         else if (mapping.DocuSignDataType == DocuSignDataType.ListCustomField)
         {
             var customFields = createContractModel.Envelope.CustomFields.ListCustomFields;
-            var customField = customFields.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            var customField = customFields.FirstOrDefault(i => i.Name.ToUpper() == mapping.DocuSignDataName.ToUpper());
             if (customField is null) throw new Exception($"Not found the ListCustomField: {mapping.DocuSignDataName}.");
             return customField.Value;
         }
@@ -487,7 +487,7 @@ public class ContactCreator : BackgroundService
             List<string> checkboxNames = new();
 
             var formData = createContractModel.EnvelopeFormData.FormData;
-            var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            var formDataItem = formData.FirstOrDefault(i => i.Name.ToUpper() == mapping.DocuSignDataName.ToUpper());
             if (formDataItem is null) throw new Exception($"Not found the FormDataItem: {mapping.DocuSignDataName}.");
             var checkboxs = formDataItem.Value.Split(";");
             foreach(var checkbox in checkboxs)

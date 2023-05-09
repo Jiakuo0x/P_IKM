@@ -149,25 +149,25 @@ public class EmailSender : BackgroundService
         if (mapping.DocuSignDataType == DocuSignDataType.FormData_Value)
         {
             var formData = envelopeFormData.FormData;
-            var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            var formDataItem = formData.FirstOrDefault(i => i.Name.ToUpper() == mapping.DocuSignDataName.ToUpper());
             return formDataItem?.Value;
         }
         else if (mapping.DocuSignDataType == DocuSignDataType.FormData_ListSelectedValue)
         {
             var formData = envelopeFormData.FormData;
-            var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            var formDataItem = formData.FirstOrDefault(i => i.Name.ToUpper() == mapping.DocuSignDataName.ToUpper());
             return formDataItem?.ListSelectedValue;
         }
         else if (mapping.DocuSignDataType == DocuSignDataType.TextCustomField)
         {
             var customFields = envelope.CustomFields.TextCustomFields;
-            var customField = customFields.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            var customField = customFields.FirstOrDefault(i => i.Name.ToUpper() == mapping.DocuSignDataName.ToUpper());
             return customField?.Value;
         }
         else if (mapping.DocuSignDataType == DocuSignDataType.ListCustomField)
         {
             var customFields = envelope.CustomFields.ListCustomFields;
-            var customField = customFields.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            var customField = customFields.FirstOrDefault(i => i.Name.ToUpper() == mapping.DocuSignDataName.ToUpper());
             return customField?.Value;
         }
         else if (mapping.DocuSignDataType == DocuSignDataType.ApplicantEmail)
@@ -184,7 +184,7 @@ public class EmailSender : BackgroundService
             StringBuilder result = new StringBuilder();
 
             var formData = envelopeFormData.FormData;
-            var formDataItem = formData.FirstOrDefault(i => i.Name == mapping.DocuSignDataName);
+            var formDataItem = formData.FirstOrDefault(i => i.Name.ToUpper() == mapping.DocuSignDataName.ToUpper());
             if (formDataItem is null) return null;
             var checkboxs = formDataItem.Value.Split(";");
             foreach (var checkbox in checkboxs)
