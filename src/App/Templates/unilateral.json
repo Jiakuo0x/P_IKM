@@ -61,7 +61,7 @@
   },
   {
     "DocuSignDataType": 10,
-    "DocuSignDataName": "ApplicantCompany",
+    "DocuSignDataName": "StampCompany",
     "BestSignDataType": 41,
     "BestSignDataName": "[合同发送人公司名称]"
   },
