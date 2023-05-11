@@ -41,7 +41,7 @@ public class DocuSignReader : BackgroundService
                 }
                 finally
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(10));
+                    await Task.Delay(TimeSpan.FromMinutes(1));
                 }
             }
         }
