@@ -18,7 +18,7 @@ public class KeyVaultManager
     /// <summary>
     /// Secret cache of DocuSign
     /// </summary>
-    private string? _docuSignSecret = null;
+    private static string? _docuSignSecret = null;
 
     /// <summary>
     /// Get secret of DocuSign
@@ -70,7 +70,7 @@ public class KeyVaultManager
     /// <summary>
     /// Secret cache of Bestsign
     /// </summary>
-    private string? _bestSignSecret = null;
+    private static string? _bestSignSecret = null;
 
     /// <summary>
     /// Get secret of Bestsign
