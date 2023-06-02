@@ -2,16 +2,16 @@
 using Azure;
 using Azure.Identity;
 
-string keyVaultUrl = "https://docusign-prodkv.vault.azure.cn/";
+string keyVaultUrl = "https://docusign-prod-kv.vault.azure.cn/";
 
-string secretName = "docusignprivatekey1";
+string secretName = "docusignprivatekey";
 var client = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
 Response<KeyVaultSecret> secretResponse = await client.GetSecretAsync(secretName);
-Console.WriteLine("docusignprivatekey1:");
+Console.WriteLine("docusignprivatekey:");
 Console.WriteLine(secretResponse.Value.Value);
 
-secretName = "bestsign";
+secretName = "docusignbestsign";
 client = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
 secretResponse = await client.GetSecretAsync(secretName);
-Console.WriteLine("bestsign:");
+Console.WriteLine("docusignbestsign:");
 Console.WriteLine(secretResponse.Value.Value);
