@@ -59,7 +59,7 @@ public class SignRemainder : BackgroundService
                     continue;
 
                 // If the time elapsed since the last update of the task is within 15 days of the current time, then skip this task
-                if (task.LastUpdated.AddDays(15) < DateTime.Now)
+                if (task.LastUpdated.AddDays(5) < DateTime.Now)
                     continue;
 
                 // Call the Bestsign API to send a signing reminder

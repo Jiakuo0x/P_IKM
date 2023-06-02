@@ -1,0 +1,1 @@
+https://account.docusign.com/oauth/auth?response type=code&scope=signature%20impersonation&client id=d4e93ff3-6a63-4b8b-8895-ef7297aa0943&redirect uri-http:www.iscn.com.cn/thankyou.html
