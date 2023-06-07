@@ -1,0 +1,122 @@
+[
+    {
+        "DocuSignDataType": 10,
+        "DocuSignDataName": "Contract ID",
+        "BestSignDataType": 10,
+        "BestSignDataName": "DocuSign 合同编号"
+    },
+    {
+        "DocuSignDataType": 10,
+        "DocuSignDataName": "Contract Type",
+        "BestSignDataType": 10,
+        "BestSignDataName": "DocuSign 合同类型"
+    },
+    {
+        "DocuSignDataType": 10,
+        "DocuSignDataName": "Comments for Contract",
+        "BestSignDataType": 10,
+        "BestSignDataName": "合同描述"
+    },
+    {
+        "DocuSignDataType": 10,
+        "DocuSignDataName": "Start Date",
+        "BestSignDataType": 10,
+        "BestSignDataName": "合同开始日"
+    },
+    {
+        "DocuSignDataType": 10,
+        "DocuSignDataName": "End Date",
+        "BestSignDataType": 10,
+        "BestSignDataName": "合同终止日"
+    },
+    {
+        "DocuSignDataType": 10,
+        "DocuSignDataName": "Currency",
+        "BestSignDataType": 10,
+        "BestSignDataName": "合同币种"
+    },
+    {
+        "DocuSignDataType": 10,
+        "DocuSignDataName": "Price",
+        "BestSignDataType": 10,
+        "BestSignDataName": "合同金额"
+    },
+    {
+        "DocuSignDataType": 50,
+        "DocuSignDataName": "Checkbox Group d00d960e-ce12-4b29-81cd-18e36fef1c6e",
+        "BestSignDataType": 10,
+        "BestSignDataName": "是否固定金额合同"
+    },
+    {
+        "DocuSignDataType": 21,
+        "DocuSignDataName": "eStamp Type",
+        "BestSignDataType": 10,
+        "BestSignDataName": "DocuSign 签署文件类型"
+    },
+    {
+        "DocuSignDataType": 40,
+        "DocuSignDataName": "[SenderEmail]",
+        "BestSignDataType": 10,
+        "BestSignDataName": "合同发送人账号"
+    },
+    {
+        "DocuSignDataType": 11,
+        "DocuSignDataName": "Signing Company",
+        "BestSignDataType": 20,
+        "BestSignDataName": "[甲方公司名称]"
+    },
+    {
+        "DocuSignDataType": 10,
+        "DocuSignDataName": "StampKeeper",
+        "BestSignDataType": 21,
+        "BestSignDataName": "[甲方账户信息]"
+    },
+    {
+        "DocuSignDataType": 10,
+        "DocuSignDataName": "Supplier Name",
+        "BestSignDataType": 30,
+        "BestSignDataName": "[乙方公司名称]"
+    },
+    {
+        "DocuSignDataType": 10,
+        "DocuSignDataName": "Supplier Contact",
+        "BestSignDataType": 31,
+        "BestSignDataName": "[乙方账户信息]"
+    },
+    {
+        "DocuSignDataType": 40,
+        "DocuSignDataName": "SenderEmail",
+        "BestSignDataType": 40,
+        "BestSignDataName": "[合同发送人账户]"
+    },
+    {
+        "DocuSignDataType": 11,
+        "DocuSignDataName": "Signing Company",
+        "BestSignDataType": 41,
+        "BestSignDataName": "[合同发送人公司名称]"
+    },
+    {
+        "DocuSignDataType": 10,
+        "DocuSignDataName": "BizLIne",
+        "BestSignDataType": 42,
+        "BestSignDataName": "[合同发送人业务线名称]"
+    },
+    {
+        "DocuSignDataType": 0,
+        "DocuSignDataName": "A Stamp Here",
+        "BestSignDataType": 50,
+        "BestSignDataName": "[甲方签章位置]"
+    },
+    {
+        "DocuSignDataType": 0,
+        "DocuSignDataName": "B Stamp Here",
+        "BestSignDataType": 60,
+        "BestSignDataName": "[乙方签章位置]"
+    },
+    {
+        "DocuSignDataType": 11,
+        "DocuSignDataName": "eStamp",
+        "BestSignDataType": 200,
+        "BestSignDataName": "[是否需要电子签章标记]"
+    }
+]
