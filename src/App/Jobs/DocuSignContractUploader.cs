@@ -37,9 +37,9 @@ public class DocuSignContractUploader : BackgroundService
                 {
                     await DoWork();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    _logger.LogError(ex, "Error in DocuSignContractUploader");
+                    // _logger.LogError(ex, "Error in DocuSignContractUploader");
                 }
                 finally
                 {

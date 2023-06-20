@@ -39,9 +39,9 @@ public class EmailSender : BackgroundService
                 {
                     await DoWork();
                 }
-                catch (Exception ex)
+                catch 
                 {
-                    _logger.LogError(ex, "Error in EmailSender");
+                    // _logger.LogError(ex, "Error in EmailSender");
                 }
                 finally
                 {

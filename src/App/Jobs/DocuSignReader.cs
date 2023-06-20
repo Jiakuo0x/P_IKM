@@ -35,9 +35,9 @@ public class DocuSignReader : BackgroundService
                 {
                     await DoWork();
                 }
-                catch (Exception ex)
+                catch 
                 {
-                    _logger.LogError(ex, "Error in DocuSignReader");
+                    // _logger.LogError(ex, "Error in DocuSignReader");
                 }
                 finally
                 {

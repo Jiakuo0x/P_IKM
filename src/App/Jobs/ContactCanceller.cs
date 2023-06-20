@@ -34,9 +34,9 @@ public class ContactCanceller : BackgroundService
                 {
                     await DoWork();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    _logger.LogError(ex, "Error in ContactCanceller");
+                    // _logger.LogError(ex, "Error in ContactCanceller");
                 }
                 finally
                 {
