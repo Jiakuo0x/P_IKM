@@ -114,7 +114,7 @@ public class EmailSender : BackgroundService
             await _docuSignService.UpdateComment(task.DocuSignEnvelopeId, "The process has failed.");
 
             // Voided the envelope
-            await _docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, "Your documents are failed to get e-stamped.");
+            // await _docuSignService.VoidedEnvelope(task.DocuSignEnvelopeId, "Your documents are failed to get e-stamped.");
         }
     }
 
