@@ -42,9 +42,9 @@ public class DocumentService
 
     public byte[] DecryptDocumentByiTextSharp(Stream document)
     {
-        PdfReader reader = new PdfReader(document);
         using (MemoryStream ms = new MemoryStream())
         {
+            PdfReader reader = new PdfReader(document);
             PdfStamper stamper = new PdfStamper(reader, ms);
 
             // 获取签名字段名称列表
@@ -58,6 +58,7 @@ public class DocumentService
                 fields.ClearSignatureField(fieldName);
             }
             
+            stamper.FormFlattening = true;
             stamper.Close();
             reader.Close();
             return ms.ToArray();
