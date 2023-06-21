@@ -49,6 +49,19 @@ public static class BestSign
 
         return result.Data;
     }
+    public static async Task<Stream> PostAsStream(string url, object data)
+    {
+        HttpClient client = new HttpClient();
+        await GenerateSignature(client, url, data);
+
+        string requestMessage = JsonConvert.SerializeObject(data);
+
+        HttpContent content = new StringContent(requestMessage, Encoding.UTF8, "application/json");
+        var resposneMessage = await client.PostAsync(_host + url, content);
+        var apiResponse = await resposneMessage.Content.ReadAsStreamAsync();
+
+        return apiResponse;
+    }
     public static async Task GenerateSignature(HttpClient client, string requestUri, object? requestBody = null)
     {
         string timestamp = DateTimeOffset.Now.ToUnixTimeSeconds().ToString();
