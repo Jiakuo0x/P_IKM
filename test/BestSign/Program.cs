@@ -1,8 +1,11 @@
 ﻿var token = await BestSign.GetToken();
-var result = await BestSign.Post<object>("/api/contract-center/search", new
+Stream result = await BestSign.PostAsStream("/api/contracts/download-file", new
 {
-    sender = "jiakuo.zhang@quest-global.com"
+    contractIds = new[] { "3343501061511825416" }
 });
 
+MemoryStream ms = new MemoryStream();
+result.CopyTo(ms);
+await File.WriteAllBytesAsync("test.zip", ms.ToArray());
 
 Console.ReadLine();
