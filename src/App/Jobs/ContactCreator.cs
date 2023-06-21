@@ -144,7 +144,7 @@ public class ContactCreator : BackgroundService
             var docFile = await _docuSign.DownloadDocument(createContractModel.Envelope.EnvelopeId, document.DocumentId);
 
             // Decrypt the document file
-            var docContent = _documentService.DecryptDocument(docFile);
+            var docContent = _documentService.DecryptDocumentByiTextSharp(docFile);
 
             // Generate the locations in the document where signatures are required
             var appendingSignLables = await AppendingSignLables(createContractModel, document);

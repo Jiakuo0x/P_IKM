@@ -1,4 +1,5 @@
 ﻿using DocuSign.eSign.Model;
+using iTextSharp.text.pdf;
 
 namespace Services;
 
@@ -37,5 +38,29 @@ public class DocumentService
         stream.Dispose();
 
         return result;
+    }
+
+    public byte[] DecryptDocumentByiTextSharp(Stream document)
+    {
+        PdfReader reader = new PdfReader(document);
+        using (MemoryStream ms = new MemoryStream())
+        {
+            PdfStamper stamper = new PdfStamper(reader, ms);
+
+            // 获取签名字段名称列表
+            AcroFields fields = stamper.AcroFields;
+            List<string> signatureFields = new List<string>(fields.GetSignatureNames());
+
+            // 遍历签名字段列表
+            foreach (string fieldName in signatureFields)
+            {
+                // 删除签名字段
+                fields.ClearSignatureField(fieldName);
+            }
+            
+            stamper.Close();
+            reader.Close();
+            return ms.ToArray();
+        }
     }
 }
