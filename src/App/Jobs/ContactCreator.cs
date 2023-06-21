@@ -42,9 +42,9 @@ public class ContactCreator : BackgroundService
                 {
                     await DoWork();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    _logger.LogError(ex, "Error in ContractCreator");
+                    // _logger.LogError(ex, "Error in ContractCreator");
                 }
                 finally
                 {
@@ -73,6 +73,7 @@ public class ContactCreator : BackgroundService
             catch (Exception ex)
             {
                 _taskService.LogError(task.Id, ex.Message);
+                _logger.LogError(ex, "Error in ContractCreator");
             }
         }
     }

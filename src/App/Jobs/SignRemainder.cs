@@ -35,9 +35,9 @@ public class SignRemainder : BackgroundService
                 {
                     await DoWork();
                 }
-                catch (Exception ex)
+                catch 
                 {
-                    _logger.LogInformation(ex, "Error in SignRemainder");
+                    // _logger.LogInformation(ex, "Error in SignRemainder");
                 }
                 finally
                 {
